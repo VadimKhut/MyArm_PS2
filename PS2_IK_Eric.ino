@@ -67,11 +67,11 @@ int dummy;                  // Defining this dummy variable to work around a bug
 //            http://code.google.com/p/arduino/issues/detail?id=987
 //            http://arduino.cc/forum/index.php/topic,125769.0.html
 
-#define DEBUG             // Uncomment to turn on debugging output
+#define DEBUG               // Uncomment to turn on debugging output
 
 #define CYL_IK              // Apply only 2D, or cylindrical, kinematics. The X-axis component is
-// removed from the equations by fixing it at 0. The arm position is
-// calculated in the Y and Z planes, and simply rotates around the base.
+                            // removed from the equations by fixing it at 0. The arm position is
+                            // calculated in the Y and Z planes, and simply rotates around the base.
 
 #define WRIST_ROTATE        // Uncomment if wrist rotate hardware is installed
 
