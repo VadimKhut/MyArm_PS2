@@ -84,7 +84,7 @@ int dummy;                  // Defining this dummy variable to work around a bug
 // Arduino pin numbers for servo connections
 #define BAS_SERVO_PIN		2     // Base servo 
 #define SHL_SERVO_PIN		3     // Shoulder Servo
-#define SHL_SERVO1_PIN	23    // Shoulder Servo1
+#define SHL_SERVO1_PIN		23    // Shoulder Servo1
 #define ELB_SERVO_PIN		4     // Elbow Servo
 #define WRI_SERVO_PIN		10    // Wrist servo
 #define GRI_SERVO_PIN		11    // Gripper servo
