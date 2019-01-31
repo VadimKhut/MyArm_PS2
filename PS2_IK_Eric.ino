@@ -78,18 +78,18 @@ int dummy;                  // Defining this dummy variable to work around a bug
 // Arm dimensions (mm). Standard AL5D arm, but with longer arm segments
 #define BASE_HGT	90.00    // Base height to X/Y plane 3.1875"
 #define HUMERUS		135.00   // Shoulder-to-elbow "bone" 10.375"
-#define ULNA		155.00   // Elbow-to-wrist "bone" 12.8125"
+#define ULNA			155.00   // Elbow-to-wrist "bone" 12.8125"
 #define GRIPPER		35.00    // Gripper length, to middle of grip surface 2.875" (3.375" - 0.5")
 
 // Arduino pin numbers for servo connections
-#define BAS_SERVO_PIN	2     // Base servo 
-#define SHL_SERVO_PIN	3     // Shoulder Servo
+#define BAS_SERVO_PIN		2     // Base servo 
+#define SHL_SERVO_PIN		3     // Shoulder Servo
 #define SHL_SERVO1_PIN	23    // Shoulder Servo1
-#define ELB_SERVO_PIN	4     // Elbow Servo
-#define WRI_SERVO_PIN	10    // Wrist servo
-#define GRI_SERVO_PIN	11    // Gripper servo
+#define ELB_SERVO_PIN		4     // Elbow Servo
+#define WRI_SERVO_PIN		10    // Wrist servo
+#define GRI_SERVO_PIN		11    // Gripper servo
 #ifdef WRIST_ROTATE
-#define WRO_SERVO_PIN	12   // Wrist rotate servo HS-485HB
+ #define WRO_SERVO_PIN		12   // Wrist rotate servo HS-485HB
 #endif
 
 // Arduino pin numbers for PS2 controller connections
@@ -181,7 +181,7 @@ int dummy;                  // Defining this dummy variable to work around a bug
 #ifdef CYL_IK   // 2D kinematics
  #define READY_BA	BAS_MID
 #else           // 3D kinematics
-#define READY_X		0.0
+ #define READY_X		0.0
 #endif
 
 #define READY_Y		170.0
@@ -196,7 +196,7 @@ int dummy;                  // Defining this dummy variable to work around a bug
 #ifdef CYL_IK   // 2D kinematics
  float BA = READY_BA;		// Base angle. Servo degrees - 0 is fully CCW
 #else           // 3D kinematics
-float X = READY_X;			// Left/right distance (mm) from base centerline - 0 is straight
+ float X = READY_X;			// Left/right distance (mm) from base centerline - 0 is straight
 #endif
 float Y = READY_Y;			// Distance (mm) out from base center
 float Z = READY_Z;			// Height (mm) from surface (i.e. X/Y plane)
@@ -767,7 +767,7 @@ void FreeServos(void){
 	Wri_Servo.detach();
 	Gri_Servo.detach();
   #ifdef WRIST_ROTATE
-	Wro_Servo.detach();
+	 Wro_Servo.detach();
   #endif
 
 	fServosAttached = false;
