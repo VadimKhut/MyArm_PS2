@@ -78,7 +78,7 @@ int dummy;                  // Defining this dummy variable to work around a bug
 // Arm dimensions (mm). Standard AL5D arm, but with longer arm segments
 #define BASE_HGT	90.00    // Base height to X/Y plane 3.1875"
 #define HUMERUS		135.00   // Shoulder-to-elbow "bone" 10.375"
-#define ULNA			155.00   // Elbow-to-wrist "bone" 12.8125"
+#define ULNA		155.00   // Elbow-to-wrist "bone" 12.8125"
 #define GRIPPER		35.00    // Gripper length, to middle of grip surface 2.875" (3.375" - 0.5")
 
 // Arduino pin numbers for servo connections
@@ -137,9 +137,9 @@ int dummy;                  // Defining this dummy variable to work around a bug
 #define GRI_MAX		165.0		// Fully closed
 
 #ifdef WRIST_ROTATE
- #define WRO_MIN		0.0
- #define WRO_MID		90.0
- #define WRO_MAX		180.0
+ #define WRO_MIN	0.0
+ #define WRO_MID	90.0
+ #define WRO_MAX	180.0
 #endif
 
 // Speed adjustment parameters
