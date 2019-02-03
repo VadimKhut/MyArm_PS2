@@ -1274,9 +1274,7 @@ void AttachServos(void) {
 		Elb_Servo.attach(ELB_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
 		Wri_Servo.attach(WRI_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
 		Gri_Servo.attach(GRI_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
-	#ifdef WRIST_ROTATE
 		Wro_Servo.attach(WRO_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
-	#endif
 
 		fServosAttached = true;
 	  #ifdef DEBUG
