@@ -118,10 +118,9 @@ int dummy;                      // Defining this dummy variable to work around a
                                 // calculated in the Y and Z planes, and simply rotates around the base.
 
 
-#define WRIST_ROTATE            // Uncomment if wrist rotate hardware is installed
 
 
-// Arm dimensions (mm). Standard AL5D arm, but with longer arm segments
+                                // Arm dimensions (mm). Standard AL5D arm, but with longer arm segments
 #define BASE_HGT	90.00       // Base height to X/Y plane 3.1875"
 #define HUMERUS		135.00      // Shoulder-to-elbow "bone" 10.375"
 #define ULNA		155.00      // Elbow-to-wrist "bone" 12.8125"
@@ -1188,8 +1187,8 @@ void servo_park(int park_type) {
 			Shl_Servo1.writeMicroseconds(deg_to_us(185-SHL_MID));
 			Elb_Servo.writeMicroseconds(deg_to_us(ELB_MID));
 			Wri_Servo.writeMicroseconds(deg_to_us(WRI_MID));
-			Gri_Servo.writeMicroseconds(deg_to_us(GRI_MID));
 			Wro_Servo.writeMicroseconds(deg_to_us(WRO_MID));
+			Gri_Servo.writeMicroseconds(deg_to_us(GRI_MID));			
 			break;
 
 			// Ready-To-Run position
@@ -1227,8 +1226,8 @@ void servo_park(int park_type) {
 			Shl_Servo1.writeMicroseconds(deg_to_us(185-SHL_OFF));
 			Elb_Servo.writeMicroseconds(deg_to_us(ELB_OFF));
 			Wri_Servo.writeMicroseconds(deg_to_us(WRI_OFF));
-			Gri_Servo.writeMicroseconds(deg_to_us(GRI_OFF));
 			Wro_Servo.writeMicroseconds(deg_to_us(WRO_OFF));
+			Gri_Servo.writeMicroseconds(deg_to_us(GRI_OFF));
 			break;
 
 	}
@@ -1273,8 +1272,9 @@ void AttachServos(void) {
 		Shl_Servo1.attach(SHL_SERVO1_PIN, SERVO_MIN_US, SERVO_MAX_US);
 		Elb_Servo.attach(ELB_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
 		Wri_Servo.attach(WRI_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
-		Gri_Servo.attach(GRI_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
 		Wro_Servo.attach(WRO_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
+		Gri_Servo.attach(GRI_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
+		
 
 		fServosAttached = true;
 	  #ifdef DEBUG
@@ -1294,8 +1294,9 @@ void FreeServos(void){
 		Shl_Servo1.detach();
 		Elb_Servo.detach();
 		Wri_Servo.detach();
-		Gri_Servo.detach();
 		Wro_Servo.detach();
+		Gri_Servo.detach();
+		
 
 		fServosAttached = false;
 
