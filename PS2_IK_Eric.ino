@@ -96,32 +96,36 @@
 
 #include <Servo.h>
 #include <PS2X_lib.h>
-#include <SdFat.h>            //  https://github.com/greiman/SdFat
-#include <TM1637Display.h>    //  https://github.com/avishorp/TM1637
+#include <SdFat.h>              //  https://github.com/greiman/SdFat
+#include <TM1637Display.h>      //  https://github.com/avishorp/TM1637
 
 
 
 
 
-int dummy;                   // Defining this dummy variable to work around a bug in the
-                             // IDE (1.0.3) pre-processor that messes up #ifdefs
-                             // More info: http://code.google.com/p/arduino/issues/detail?id=906
-                             //            http://code.google.com/p/arduino/issues/detail?id=987
-                             //            http://arduino.cc/forum/index.php/topic,125769.0.html
+int dummy;                      // Defining this dummy variable to work around a bug in the
+                                // IDE (1.0.3) pre-processor that messes up #ifdefs
+                                // More info: http://code.google.com/p/arduino/issues/detail?id=906
+                                //            http://code.google.com/p/arduino/issues/detail?id=987
+                                //            http://arduino.cc/forum/index.php/topic,125769.0.html
 
-#define DEBUG                // Uncomment to turn on debugging output
+#define DEBUG                   // Uncomment to turn on debugging output
+
 
 #define CYL_IK                  // Apply only 2D, or cylindrical, kinematics. The X-axis component is
                                 // removed from the equations by fixing it at 0. The arm position is
                                 // calculated in the Y and Z planes, and simply rotates around the base.
 
+
 #define WRIST_ROTATE            // Uncomment if wrist rotate hardware is installed
+
 
 // Arm dimensions (mm). Standard AL5D arm, but with longer arm segments
 #define BASE_HGT	90.00       // Base height to X/Y plane 3.1875"
 #define HUMERUS		135.00      // Shoulder-to-elbow "bone" 10.375"
 #define ULNA		155.00      // Elbow-to-wrist "bone" 12.8125"
 #define GRIPPER		35.00       // Gripper length, to middle of grip surface 2.875" (3.375" - 0.5")
+
 
 // Arduino pin numbers for servo connections
 #define BAS_SERVO_PIN	2       // Base servo 
@@ -134,6 +138,7 @@ int dummy;                   // Defining this dummy variable to work around a bu
  #define WRO_SERVO_PIN	12      // Wrist rotate servo HS-485HB
 #endif
 
+
 // Arduino pin numbers for PS2 controller connections
 #define PS2_DAT_PIN		6       // Data           [green] 
 #define PS2_CMD_PIN		7       // Command        [blue]
@@ -143,6 +148,7 @@ int dummy;                   // Defining this dummy variable to work around a bu
 
 // Arduino pin number of on-board speaker
 #define SPK_PIN 5
+
 
 // Define generic range limits for servos, in microseconds (us) and degrees (deg)
 // Used to map range of 180 deg to 1800 us (native servo units).
@@ -154,6 +160,7 @@ int dummy;                   // Defining this dummy variable to work around a bu
 #define SERVO_MID_DEG	90.0
 #define SERVO_MAX_DEG	180.0
 
+
 // Set physical limits (in degrees) per servo/joint.
 // Will vary for each servo/joint, depending on mechanical range of motion.
 // The MID setting is the required servo input needed to achieve a 
@@ -162,6 +169,7 @@ int dummy;                   // Defining this dummy variable to work around a bu
 #define BAS_MID		90.0
 #define BAS_MAX		180.0		// Fully CW
 #define BAS_OFF		90.0		// Centre
+
 
 #define SHL_MIN		0.0			// Max forward motion
 #define SHL_MID		90.0
@@ -173,6 +181,7 @@ int dummy;                   // Defining this dummy variable to work around a bu
 #define ELB_MID		90.0
 #define ELB_MAX		165.0		// Max downward motion
 #define ELB_OFF		90.0
+
 
 #define WRI_MIN		0.0			// Max downward motion
 #define WRI_MID		90.0
@@ -191,6 +200,7 @@ int dummy;                   // Defining this dummy variable to work around a bu
  #define WRO_OFF	90.0
 #endif
 
+
 // Speed adjustment parameters
 // Percentages (1.0 = 100%) - applied to all arm movements
 #define SPEED_MIN		0.25
@@ -203,6 +213,7 @@ int dummy;                   // Defining this dummy variable to work around a bu
 // for base rotation in 2D mode. 
 #define Y_MIN 100.0	// mm
 
+
 // PS2 controller characteristics
 #define JS_MIDPOINT		128		// Numeric value for joystick midpoint
 #define JS_DEADBAND		4		// Ignore movement this close to the center position
@@ -211,14 +222,17 @@ int dummy;                   // Defining this dummy variable to work around a bu
 #define Z_INCREMENT		2.0		// Change in Z axis (mm) per button press
 #define GR_INCREMENT	2.0		// Change in Gripper jaw opening (servo angle) per button press
 
+
 // Audible feedback sounds
 #define TONE_READY		1000	// Hz
 #define TONE_IK_ERROR	200		// Hz
 #define TONE_DURATION	100		// ms
 
+
 // IK function return values
 #define IK_SUCCESS		0
 #define IK_ERROR		1		// Desired position not possible
+
 
 // Arm parking positions
 #define PARK_MIDPOINT	1		// Servos at midpoints
@@ -235,6 +249,7 @@ int dummy;                   // Defining this dummy variable to work around a bu
 #define READY_X		90.0
 #endif
 
+
 #define READY_Y		170.0
 #define READY_Z		45.0
 #define READY_GRA	0.0
@@ -242,6 +257,7 @@ int dummy;                   // Defining this dummy variable to work around a bu
 #ifdef WRIST_ROTATE
  #define READY_WRO	WRO_MID
 #endif
+
 
 // Global variables for arm position, and initial settings
 #ifdef CYL_IK   // 2D kinematics
@@ -251,10 +267,12 @@ int dummy;                   // Defining this dummy variable to work around a bu
 float X = READY_X;                 // Left/right distance (mm) from base centerline - 0 is straight
 #endif
 
+
 float Y = READY_Y;                 // Distance (mm) out from base center
 float Z = READY_Z;                 // Height (mm) from surface (i.e. X/Y plane)
 float GA_pos = READY_GRA;          // Gripper angle. Servo degrees, relative to X/Y plane - 0 is horizontal
 float Gr_pos = READY_GR;           // Gripper jaw opening. Servo degrees - midpoint is halfway open
+
 
 float y_tmp, z_tmp, ga_tmp;	       // temp. variables
 #ifdef CYL_IK   // 2D kinematics
@@ -263,23 +281,30 @@ float y_tmp, z_tmp, ga_tmp;	       // temp. variables
  float x_tmp;
 #endif
 
+
 #ifdef WRIST_ROTATE
  float WRro_pos = READY_WRO;        // Wrist Rotate. Servo degrees - midpoint is horizontal
  float old_WRro_pos;
 #endif
 
+
 float Speed = SPEED_DEFAULT;
+
 
 // Pre-calculations
 float hum_sq = HUMERUS*HUMERUS;
 float uln_sq = ULNA*ULNA;
 
+
 int Bas_fb, Shl_fb, Elb_fb, Wri_fb, Wro_fb, Gri_fb;
+
 
 int ly_trans, lx_trans, ry_trans, rx_trans;
 
+
 static short	PS2ErrorCnt;
 #define	MAXPS2ERRORCNT		5      // How many times through the loop will we go before shutting off robot?
+
 
 float bas3D_pos, shl_pos, elb_pos, wri_pos;
 
@@ -288,6 +313,7 @@ float bas3D_pos, shl_pos, elb_pos, wri_pos;
 bool fServosAttached = false;      // remember we are not attached. Could simply ask one of our servos...
 bool fArmOn = false;
 bool arm_move = false;             // Used to indidate whether an input occurred that can move the arm
+
 
 void setDisplay(char inMode);
 void setName(int i);
@@ -341,8 +367,6 @@ char name[] = "ARM000.CSV";         // Will be incremented to create a new file 
 // P = Playback
 // N = None
 char mode = 'N'; 
-int recordButton   = A0;
-int playbackButton = A1;
 long int recStart;
 int playbackProgram = -1;
 int maxProgram = 0;
@@ -369,6 +393,7 @@ void TurnArmOff(void){
 void TurnArmOn(void){
 
 	AttachServos();
+	
 	// NOTE: Ensure arm is close to the desired park position before turning on servo power!
 	servo_park(PARK_READY);
 
@@ -681,6 +706,7 @@ void startRecord(){
 	 #ifdef DEBUG
 		Serial.println(F("Lighting up display"));
 	 #endif DEBUG	
+		
 		// myFile.println("time,command,value");    
 		// Need to first write the initial (current) position
 		// of the arm so it can be initialized upon playback.
