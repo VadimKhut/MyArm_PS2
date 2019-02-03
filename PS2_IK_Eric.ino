@@ -272,7 +272,7 @@ float Gr_pos = READY_GR;           // Gripper jaw opening. Servo degrees - midpo
 
 float y_tmp, z_tmp, ga_tmp;	       // temp. variables
 #ifdef CYL_IK   // 2D kinematics
-// not used
+ // not used
 #else           // 3D kinematics
  float x_tmp;
 #endif
@@ -334,8 +334,8 @@ Servo   Shl_Servo;
 Servo   Shl_Servo1;
 Servo   Elb_Servo;
 Servo   Wri_Servo;
-Servo   Gri_Servo;
 Servo   Wro_Servo;
+Servo   Gri_Servo;
 
 
 // LED module connection pins (Digital Pins)
@@ -840,7 +840,7 @@ void startPlayback(int in_playbackProgram) {
 					break;
 				case 'S': // Shoulder position
 					Shl_Servo.write(commandParam);
-					Shl_Servo1.write(180-commandParam)
+					Shl_Servo1.write(185-commandParam)
 					break;
 				case 'E': //Elbow position
 					Elb_Servo.write(commandParam);
@@ -1185,7 +1185,7 @@ void servo_park(int park_type) {
 	#endif
 			Bas_Servo.writeMicroseconds(deg_to_us(BAS_MID));
 			Shl_Servo.writeMicroseconds(deg_to_us(SHL_MID));
-			Shl_Servo1.writeMicroseconds(deg_to_us(180-SHL_MID));
+			Shl_Servo1.writeMicroseconds(deg_to_us(185-SHL_MID));
 			Elb_Servo.writeMicroseconds(deg_to_us(ELB_MID));
 			Wri_Servo.writeMicroseconds(deg_to_us(WRI_MID));
 			Gri_Servo.writeMicroseconds(deg_to_us(GRI_MID));
@@ -1224,7 +1224,7 @@ void servo_park(int park_type) {
 	#endif
 			Bas_Servo.writeMicroseconds(deg_to_us(BAS_OFF));
 			Shl_Servo.writeMicroseconds(deg_to_us(SHL_OFF));
-			Shl_Servo1.writeMicroseconds(deg_to_us(180-SHL_OFF));
+			Shl_Servo1.writeMicroseconds(deg_to_us(185-SHL_OFF));
 			Elb_Servo.writeMicroseconds(deg_to_us(ELB_OFF));
 			Wri_Servo.writeMicroseconds(deg_to_us(WRI_OFF));
 			Gri_Servo.writeMicroseconds(deg_to_us(GRI_OFF));
