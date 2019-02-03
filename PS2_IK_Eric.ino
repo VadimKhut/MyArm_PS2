@@ -1297,9 +1297,7 @@ void FreeServos(void){
 		Elb_Servo.detach();
 		Wri_Servo.detach();
 		Gri_Servo.detach();
-	  #ifdef WRIST_ROTATE
 		Wro_Servo.detach();
-	  #endif
 
 		fServosAttached = false;
 
