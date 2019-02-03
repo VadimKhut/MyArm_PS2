@@ -333,6 +333,7 @@ void startRecord();
 // PS2 Controller object
 PS2X    Ps2x;
 
+
 // Servo objects 
 Servo   Bas_Servo;
 Servo   Shl_Servo;
@@ -349,13 +350,17 @@ Servo   Gri_Servo;
 #define CLK 24
 #define DIO 25
 
+
 TM1637Display display(CLK, DIO);
+
  
 int k;
 uint8_t data[] = { 0xff, 0xff, 0xff, 0xff };
 
+
 // SD shield
 const int chipSelect = 53;          // Ard_MEGA: CS =53
+
 
 SdFat sd;                           // Ard_MINI: CS/MOSI/MISO/CK = 10/11/12/13 [ Ard_MEGA: CS/MOSI/MISO/CK = 53/51/50/52]
 SdFile myFile;
@@ -380,6 +385,7 @@ int maxProgram = 0;
  
 void TurnArmOff(void){
 
+    
 	servo_park(PARK_OFF);
 	FreeServos();
 	fArmOn = true;
@@ -387,6 +393,7 @@ void TurnArmOff(void){
 	Serial.println(F("Arm OFF!"));
   #endif          
 }
+
 
 
 
@@ -404,6 +411,7 @@ void TurnArmOn(void){
 }
 
 
+
  
 void InitPs2(void){
 
@@ -419,6 +427,7 @@ void InitPs2(void){
     //#endif
 	} while (ps2_stat == 1);
 
+    
 #ifdef DEBUG
 	switch (ps2_stat) {
 		case 0:
@@ -436,8 +445,10 @@ void InitPs2(void){
 
 
 
+
 void ControlInput(void){
 
+    
 	Ps2x.read_gamepad();                            //read controller
 
 	if ((Ps2x.Analog(1) & 0xf0) == 0x70) {
@@ -779,15 +790,15 @@ void setDisplay(char inMode) {
 
 	switch (inMode) {
 		case 'R':
-			data[0] = 0b01010000;
+			data[0] = B01010000;
 			break;
 		case 'P':
-			data[0] = 0b01110011;
+			data[0] = B01110011;
 			break;
 		case 'S':
-			//data[0] = 0b01101101;
+			//data[0] = B01101101;
 			// Changed this from S to C since S looks just like % on LED.
-			data[0] = 0b00111001;
+			data[0] = B00111001;
 			break;
 	}
 
