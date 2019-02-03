@@ -135,9 +135,7 @@ int dummy;                      // Defining this dummy variable to work around a
 #define ELB_SERVO_PIN	4       // Elbow Servo
 #define WRI_SERVO_PIN	10      // Wrist servo
 #define GRI_SERVO_PIN	11      // Gripper servo
-#ifdef WRIST_ROTATE
- #define WRO_SERVO_PIN	12      // Wrist rotate servo HS-485HB
-#endif
+#define WRO_SERVO_PIN	12      // Wrist rotate servo HS-485HB
 
 
 // Arduino pin numbers for PS2 controller connections
@@ -194,12 +192,11 @@ int dummy;                      // Defining this dummy variable to work around a
 #define GRI_MAX		165.0		// Fully closed
 #define GRI_OFF		90.0
 
-#ifdef WRIST_ROTATE
- #define WRO_MIN	0.0
- #define WRO_MID	90.0
- #define WRO_MAX	180.0
- #define WRO_OFF	90.0
-#endif
+
+#define WRO_MIN	0.0
+#define WRO_MID	90.0
+#define WRO_MAX	180.0
+#define WRO_OFF	90.0
 
 
 // Speed adjustment parameters
@@ -255,9 +252,7 @@ int dummy;                      // Defining this dummy variable to work around a
 #define READY_Z		45.0
 #define READY_GRA	0.0
 #define READY_GR	GRI_MID
-#ifdef WRIST_ROTATE
- #define READY_WRO	WRO_MID
-#endif
+#define READY_WRO	WRO_MID
 
 
 // Global variables for arm position, and initial settings
@@ -283,10 +278,8 @@ float y_tmp, z_tmp, ga_tmp;	       // temp. variables
 #endif
 
 
-#ifdef WRIST_ROTATE
- float WRro_pos = READY_WRO;        // Wrist Rotate. Servo degrees - midpoint is horizontal
- float old_WRro_pos;
-#endif
+float WRro_pos = READY_WRO;        // Wrist Rotate. Servo degrees - midpoint is horizontal
+float old_WRro_pos;
 
 
 float Speed = SPEED_DEFAULT;
@@ -342,9 +335,7 @@ Servo   Shl_Servo1;
 Servo   Elb_Servo;
 Servo   Wri_Servo;
 Servo   Gri_Servo;
-#ifdef WRIST_ROTATE
- Servo   Wro_Servo;
-#endif
+Servo   Wro_Servo;
 
 
 // LED module connection pins (Digital Pins)
@@ -615,7 +606,7 @@ void ControlInput(void){
 			tone(SPK_PIN, (TONE_READY * Speed), TONE_DURATION);
 		}
 
-	#ifdef WRIST_ROTATE
+	
 		// Wrist rotate (in degrees)
 		// Restrict to MIN/MAX range of servo
 		if (abs(lx_trans) > JS_DEADBAND) {                             // Wrist rotate (if installed)
@@ -639,7 +630,6 @@ void ControlInput(void){
 				}
 			}
 		}
-	#endif
 
 
 
@@ -1199,9 +1189,7 @@ void servo_park(int park_type) {
 			Elb_Servo.writeMicroseconds(deg_to_us(ELB_MID));
 			Wri_Servo.writeMicroseconds(deg_to_us(WRI_MID));
 			Gri_Servo.writeMicroseconds(deg_to_us(GRI_MID));
-	#ifdef WRIST_ROTATE
 			Wro_Servo.writeMicroseconds(deg_to_us(WRO_MID));
-	#endif
 			break;
 
 			// Ready-To-Run position
@@ -1223,12 +1211,10 @@ void servo_park(int park_type) {
 			Serial.println(READY_GR);
 		#endif
 
-		#ifdef WRIST_ROTATE
 			Wro_Servo.writeMicroseconds(deg_to_us(READY_WRO));
 		#ifdef DEBUG
 			Serial.print("  WR_RO: ");
 			Serial.println(READY_WRO);
-		#endif
 		#endif
 			break;
 		// All servos at midpoint
@@ -1242,9 +1228,7 @@ void servo_park(int park_type) {
 			Elb_Servo.writeMicroseconds(deg_to_us(ELB_OFF));
 			Wri_Servo.writeMicroseconds(deg_to_us(WRI_OFF));
 			Gri_Servo.writeMicroseconds(deg_to_us(GRI_OFF));
-		#ifdef WRIST_ROTATE
 			Wro_Servo.writeMicroseconds(deg_to_us(WRO_OFF));
-		#endif
 			break;
 
 	}
