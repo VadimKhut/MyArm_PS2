@@ -109,6 +109,7 @@ int dummy;                      // Defining this dummy variable to work around a
                                 //            http://code.google.com/p/arduino/issues/detail?id=987
                                 //            http://arduino.cc/forum/index.php/topic,125769.0.html
 
+
 #define DEBUG                   // Uncomment to turn on debugging output
 
 
@@ -825,7 +826,8 @@ void startPlayback(int in_playbackProgram) {
 	setDisplay('P');
 	mode = 'P';
 
-	delay(1000);    
+	delay(1000);
+	
 #ifdef DEBUG
 	Serial.print(F("Playing back file "));
 	Serial.println(name);
@@ -836,28 +838,40 @@ void startPlayback(int in_playbackProgram) {
 
 	if (sdin.is_open()) {
 		while (sdin >> commandTime >> c1 >> commandType >> c2 >> commandParam) {
+			
 			if (c1 != ',' || c2 != ',') 
 				continue;
+			
 			fileLine++;
+			
 			switch (commandType) {
-				case 'C':
-					claw.write(commandParam);
+				case 'B': // Base rotation
+					Bas_Servo.write(commandParam);
 					break;
-				case 'B':
-					base.write(commandParam);
+				case 'S': // Shoulder position
+					Shl_Servo.write(commandParam);
+					Shl_Servo1.write(180-commandParam)
 					break;
-				case 'H':
-					hArm.write(commandParam);
+				case 'E': //Elbow position
+					Elb_Servo.write(commandParam);
+					break;					
+				case 'W: // Wrist position
+					Wri_Servo.write(commandParam);
 					break;
-				case 'V':
-					vArm.write(commandParam);
+				case 'w: // Wrist rotate
+					Wro_Servo.write(commandParam);
 					break;
+				case 'G': // Gripper
+					Gri_Servo.write(commandParam);
+					break;				
 				}
 				if (commandTime == 0) {
 					delay(500);
 			}
 			else {
+				
 				delay(commandTime - commandTimePrev);
+				
 				commandTimePrev = commandTime;
 			}
 		}
