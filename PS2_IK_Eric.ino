@@ -889,6 +889,7 @@ void startRecord(void) {
 		  #endif
 		#endif
 		myFile.print(","); myFile.print(shl_pos_us);
+		myFile.print(","); myFile.print(shl1_pos_us);
 		myFile.print(","); myFile.print(elb_pos);
 		myFile.print(","); myFile.print(wri_pos);
 		myFile.print(","); myFile.print(WRro_pos);
@@ -897,6 +898,7 @@ void startRecord(void) {
 
 	 #ifdef DEBUG
 		Serial.print(","); Serial.print(shl_pos);
+		Serial.print(","); Serial.print(shl1_pos);
 		Serial.print(","); Serial.print(elb_pos);
 		Serial.print(","); Serial.print(wri_pos);
 		Serial.print(","); Serial.print(WRro_pos);
@@ -920,7 +922,7 @@ void startRecord(void) {
 
 void startSelect() {
 
-	return;
+	return; // Vad
 
 	if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {
 		Serial.println (F("Cannot access local SD card."));
