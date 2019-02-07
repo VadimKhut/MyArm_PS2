@@ -347,8 +347,7 @@ void FreeServos(void);
 void InitPs2(void);
 void Control_PS2_Input(void);
 void MoveArmTo(void);
-void ServoUpdate(unsigned int DeltaTime);
-
+void ServoUpdate(unsigned int DeltaTime, int BA_pos_us, int shl_pos_us, int shl1_pos_us, int elb_pos_us, int wri_pos_us, int WRro_pos_us, int Gr_pos_us);
 
 
 
@@ -1042,26 +1041,14 @@ void startPlayback(int in_playbackProgram) {
 				continue;
 			
 			fileLine++;
-			
-			ServoGroupMove.start();
 
-			Bas_Servo.writeMicroseconds(BA);
-			Shl_Servo.writeMicroseconds(shl);
-			Shl_Servo1.writeMicroseconds(shl1);
-			Elb_Servo.writeMicroseconds(elb);
-			Wri_Servo.writeMicroseconds(wri);
-			Wro_Servo.writeMicroseconds(WRro);
-			Gri_Servo.writeMicroseconds(Gr);
+			ServoUpdate(INTERPOLATE, BA, shl, shl1, elb, wri, WRro, Gr);
 
 			if (cTime == 0) {
-				ServoGroupMove.commit(2000);
-				delay(2500);
+				delay(INTERPOLATE + 500);
 			}
 			else {
-				
-				ServoGroupMove.commit(2000);
-				delay((cTime - cTimePrev) + 2000);
-				
+				delay((cTime - cTimePrev) + INTERPOLATE);
 				cTimePrev = cTime;
 			}
 		} // while
