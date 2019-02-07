@@ -1322,31 +1322,36 @@ void servo_park(int park_type) {
 		// All servos at MidPoint position
 		case PARK_MIDPOINT:
 
-			ServoGroupMove.start();
-
 	#ifdef DEBUG
 			Serial.println("PARK_MIDPOINT:");
 	#endif
-			Bas_Servo.writeMicroseconds(deg_to_us(BAS_MID));
-			Shl_Servo.writeMicroseconds(deg_to_us(SHL_MID));
-			Shl_Servo1.writeMicroseconds(deg_to_us(185-SHL_MID));
-			Elb_Servo.writeMicroseconds(deg_to_us(ELB_MID));
-			Wri_Servo.writeMicroseconds(deg_to_us(WRI_MID));
-			Wro_Servo.writeMicroseconds(deg_to_us(WRO_MID));
-			Gri_Servo.writeMicroseconds(deg_to_us(GRI_MID));
-
-			ServoGroupMove.commit(2500);
+			
+			#ifdef CYL_IK   // 2D kinematics
+			 BA_us = deg_to_us(BAS_MID);
+			#else           // 3D kinematics
+			 BA_us = deg_to_us(BAS_MID);
+			#endif
+			shl_pos_us = deg_to_us(SHL_MID);
+			shl1_pos_us = deg_to_us(185-SHL_MID);
+			elb_pos_us = deg_to_us(ELB_MID);
+			wri_pos_us = deg_to_us(WRI_MID);
+			WRro_pos_us = deg_to_us(WRO_MID);
+			Gr_pos_us = deg_to_us(GRI_MID);
 			break;
 
-			// Ready-To-Run position
+		// Ready-To-Run position
 		case PARK_READY:
+			
 	#ifdef CYL_IK   // 2D kinematics
 		#ifdef DEBUG
 			Serial.println("PARK_READY:");
 			Serial.print("  Base: ");
 			Serial.println(READY_BA);
 		#endif
+			
 			doArmIK(0.0, READY_Y, READY_Z, READY_GRA); //0; 170; 45; 0
+			
+			
 			Bas_Servo.writeMicroseconds(deg_to_us(READY_BA)); //90.0
 	#else           // 3D kinematics
 			doArmIK(READY_X, READY_Y, READY_Z, READY_GrA); //0; 170; 45; 0
@@ -1364,20 +1369,29 @@ void servo_park(int park_type) {
 		#endif
 			break;
 		
-			// All servos at PARK_OFF position
+		// All servos at PARK_OFF position
 		case PARK_OFF:
+			
 	#ifdef DEBUG
 			Serial.println("PARK_OFF:");
 	#endif
-			Bas_Servo.writeMicroseconds(deg_to_us(BAS_OFF));
-			Shl_Servo.writeMicroseconds(deg_to_us(SHL_OFF));
-			Shl_Servo1.writeMicroseconds(deg_to_us(185-SHL_OFF));
-			Elb_Servo.writeMicroseconds(deg_to_us(ELB_OFF));
-			Wri_Servo.writeMicroseconds(deg_to_us(WRI_OFF));
-			Wro_Servo.writeMicroseconds(deg_to_us(WRO_OFF));
-			Gri_Servo.writeMicroseconds(deg_to_us(GRI_OFF));
+
+			#ifdef CYL_IK   // 2D kinematics
+			 BA_us = deg_to_us(BAS_OFF);
+			#else           // 3D kinematics
+			 BA_us = deg_to_us(BAS_OFF);
+			#endif
+			shl_pos_us = deg_to_us(BAS_OFF);
+			shl1_pos_us = deg_to_us(185-BAS_OFF);
+			elb_pos_us = deg_to_us(BAS_OFF);
+			wri_pos_us = deg_to_us(BAS_OFF);
+			WRro_pos_us = deg_to_us(BAS_OFF);
+			Gr_pos_us = deg_to_us(BAS_OFF);
 			break;
 	}
+	
+	ServoUpdate(2000, BA_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
+
 }
 
 
