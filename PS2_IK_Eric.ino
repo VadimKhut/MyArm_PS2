@@ -300,6 +300,9 @@ int ly_trans, lx_trans, ry_trans, rx_trans;
 static short	PS2ErrorCnt;
 #define	MAXPS2ERRORCNT		5      // How many times through the loop will we go before shutting off robot?
 
+#define INTERPOLATE			2000   // the amount of time to complete a pose 
+
+#define THRESHOLD_REC		10     // threshold for Record to SD card changing the servo position   
 
 float bas3D_pos, shl_pos, elb_pos, wri_pos;
 int shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, Gr_pos_us, WRro_pos_us;
@@ -1029,7 +1032,6 @@ void startPlayback(int in_playbackProgram) {
 	Serial.println(name);
 #endif
 
-
 	ifstream sdin(name);
 
 	if (sdin.is_open()) {
@@ -1052,13 +1054,13 @@ void startPlayback(int in_playbackProgram) {
 			Gri_Servo.writeMicroseconds(Gr);
 
 			if (cTime == 0) {
-				ServoGroupMove.commit(500);
-				delay(500);
+				ServoGroupMove.commit(2000);
+				delay(2500);
 			}
 			else {
 				
-				ServoGroupMove.commit(500);
-				delay(cTime - cTimePrev);
+				ServoGroupMove.commit(2000);
+				delay((cTime - cTimePrev) + 2000);
 				
 				cTimePrev = cTime;
 			}
@@ -1490,43 +1492,43 @@ void MoveArmTo(void) {
 
 	 #ifdef CYL_IK   // 2D kinematics
 
-		if (abs(BA2D_pos_us - old_BA2D_pos_us) > 5) {
+		if (abs(BA2D_pos_us - old_BA2D_pos_us) > THRESHOLD_REC) {
 			writeCommand();
 			old_BA2D_pos_us = BA2D_pos_us;
 		}
 
 	 #else           // 3D kinematics
 
-		if (abs(bas3D_pos_us - old_bas3D_pos_us) > 5) {
+		if (abs(bas3D_pos_us - old_bas3D_pos_us) > THRESHOLD_REC) {
 			writeCommand();
 			old_bas3D_pos_us = bas3D_pos_us;
 		}
 
 	 #endif
 
-		if (abs(shl_pos_us - old_shl_pos_us) > 5) {
+		if (abs(shl_pos_us - old_shl_pos_us) > THRESHOLD_REC) {
 			writeCommand();
 			old_shl_pos_us = shl_pos_us;
 		}
 
-		if (abs(elb_pos_us - old_elb_pos_us) > 5) {
+		if (abs(elb_pos_us - old_elb_pos_us) > THRESHOLD_REC) {
 			writeCommand();
 			old_elb_pos_us = elb_pos_us;
 		}
 
-		if (abs(wri_pos_us - old_wri_pos_us) > 5) {
+		if (abs(wri_pos_us - old_wri_pos_us) > THRESHOLD_REC) {
 			writeCommand();
 			old_wri_pos_us = wri_pos_us;
 		}
 
 	
-		if (abs(WRro_pos_us - old_WRro_pos_us) > 5) {
+		if (abs(WRro_pos_us - old_WRro_pos_us) > THRESHOLD_REC) {
 			writeCommand();
 			old_WRro_pos_us = WRro_pos_us;
 		}
 
 
-		if (abs(Gr_pos_us - old_Gr_pos_us) > 5) {
+		if (abs(Gr_pos_us - old_Gr_pos_us) > THRESHOLD_REC) {
 			writeCommand();
 			old_Gr_pos_us = Gr_pos_us;
 		}
@@ -1539,18 +1541,18 @@ void MoveArmTo(void) {
 
 // SetServo: Writes Servo Position Solutions
 
-void ServoUpdate(unsigned int DeltaTime) {
+void ServoUpdate(unsigned int DeltaTime, int BA_pos_us, int shl_pos_us, int shl1_pos_us, int elb_pos_us, int wri_pos_us, int WRro_pos_us, int Gr_pos_us) {
 
 	ServoGroupMove.start();
 
 	// Position the servos
 	#ifdef CYL_IK   // 2D kinematics
 
-	Bas_Servo.writeMicroseconds(BA2D_pos_us);
+	Bas_Servo.writeMicroseconds(BA_pos_us);
 
 	#else           // 3D kinematics
 
-	Bas_Servo.writeMicroseconds(bas3D_pos_us;
+	Bas_Servo.writeMicroseconds(BA_pos_us;
 
 	#endif
 
