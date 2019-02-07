@@ -1475,8 +1475,8 @@ void MoveArmTo(void) {
 	shl1_pos_us = deg_to_us(185-shl_pos);
 	elb_pos_us = deg_to_us(elb_pos);
 	wri_pos_us = deg_to_us(wri_pos);
-	Gr_pos_us = deg_to_us(Gr_pos);
 	WRro_pos_us = deg_to_us(WRro_pos);
+	Gr_pos_us = deg_to_us(Gr_pos);
 
 	if (mode == 'R') {
 
@@ -1490,36 +1490,36 @@ void MoveArmTo(void) {
 	 #else           // 3D kinematics
 
 		if (abs(bas3D_pos_us - old_bas3D_pos_us) > 5) {
-			writeCommand(bas3D_pos_us);
+			writeCommand();
 			old_bas3D_pos_us = bas3D_pos_us;
 		}
 
 	 #endif
 
 		if (abs(shl_pos_us - old_shl_pos_us) > 5) {
-			writeCommand('S', shl_pos_us);
+			writeCommand();
 			old_shl_pos_us = shl_pos_us;
 		}
 
 		if (abs(elb_pos_us - old_elb_pos_us) > 5) {
-			writeCommand('E', elb_pos_us);
+			writeCommand();
 			old_elb_pos_us = elb_pos_us;
 		}
 
 		if (abs(wri_pos_us - old_wri_pos_us) > 5) {
-			writeCommand('w', wri_pos_us);
+			writeCommand();
 			old_wri_pos_us = wri_pos_us;
 		}
 
 	
 		if (abs(WRro_pos_us - old_WRro_pos_us) > 5) {
-			writeCommand('W', WRro_pos_us);
+			writeCommand();
 			old_WRro_pos_us = WRro_pos_us;
 		}
 
 
 		if (abs(Gr_pos_us - old_Gr_pos_us) > 5) {
-			writeCommand('G', Gr_pos_us);
+			writeCommand();
 			old_Gr_pos_us = Gr_pos_us;
 		}
 
