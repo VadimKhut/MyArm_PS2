@@ -785,7 +785,7 @@ void Control_PS2_Input(void){
 
 	if (mode == 'R') {
 
-		//myFile.println("time,bas2D/3D_pos_us,shl_pos_us,elb_pos_us,wri_pos_us,WRro_pos_us,Gr_pos_us");
+		//myFile.println("time,BA2D/bas3D_pos_us,shl_pos_us,shl1_pos_us,elb_pos_us,wri_pos_us,WRro_pos_us,Gr_pos_us");
 		if (myFile.open(name, O_RDWR | O_CREAT | O_AT_END)) {
 
 			car_time = (millis() - recStart);
@@ -799,6 +799,8 @@ void Control_PS2_Input(void){
 		#endif
 			myFile.print(",");
 			myFile.print(shl_pos_us);
+			myFile.print(",");
+			myFile.print(shl1_pos_us);
 			myFile.print(",");
 			myFile.print(elb_pos_us);
 			myFile.print(",");
@@ -821,6 +823,8 @@ void Control_PS2_Input(void){
 			Serial.print(bas3D_pos_us);
 		#endif
 			Serial.print(shl_pos_us);
+			Serial.print(",");
+			Serial.print(shl1_pos_us);
 			Serial.print(",");
 			Serial.print(elb_pos_us);
 			Serial.print(",");
@@ -872,29 +876,31 @@ void startRecord(void) {
 		// Need to first write the initial (current) position
 		// of the arm so it can be initialized upon playback.
 		#ifdef CYL_IK   // 2D kinematics
-			myFile.print("0,B,"); myFile.println(BA2D_pos);
+			myFile.print("0,"); myFile.print(BA2D_pos);
 		  #ifdef DEBUG
-			Serial.print("0, B, "); Serial.println(BA2D_pos);
+			Serial.print(F("SD: "));
+			Serial.print("0,"); Serial.print(BA2D_pos);
 		  #endif
 		#else
-			myFile.print("0,B,"); myFile.println(bas3D_pos);
+			myFile.print("0,"); myFile.print(bas3D_pos);
 		  #ifdef DEBUG
-			Serial.print("0, B, "); Serial.println(bas3D_pos);
+			Serial.print(F("SD: "));
+			Serial.print("0,"); Serial.print(bas3D_pos);
 		  #endif
 		#endif
-		myFile.print("0,S,"); myFile.println(shl_pos);
-		myFile.print("0,E,"); myFile.println(elb_pos);
-		myFile.print("0,w,"); myFile.println(wri_pos);
-		myFile.print("0,W,"); myFile.println(WRro_pos);
-		myFile.print("0,C,"); myFile.println(Gr_pos);
+		myFile.print(","); myFile.print(shl_pos_us);
+		myFile.print(","); myFile.print(elb_pos);
+		myFile.print(","); myFile.print(wri_pos);
+		myFile.print(","); myFile.print(WRro_pos);
+		myFile.print(","); myFile.println(Gr_pos);
 		myFile.close();
 
 	 #ifdef DEBUG
-		Serial.print("0, S, "); Serial.println(shl_pos);
-		Serial.print("0, E, "); Serial.println(elb_pos);
-		Serial.print("0, w, "); Serial.println(wri_pos);
-		Serial.print("0, W, "); Serial.println(WRro_pos);
-		Serial.print("0, C, "); Serial.println(Gr_pos);
+		Serial.print(","); Serial.print(shl_pos);
+		Serial.print(","); Serial.print(elb_pos);
+		Serial.print(","); Serial.print(wri_pos);
+		Serial.print(","); Serial.print(WRro_pos);
+		Serial.print(","); Serial.println(Gr_pos);
 	 #endif
 
 		mode = 'R';
