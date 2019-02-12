@@ -1648,6 +1648,7 @@ void servo_park(int park_type) {
 			break;
 	}
 	
+	
 	ServoUpdate(T_PARK_OFF, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
 
 
