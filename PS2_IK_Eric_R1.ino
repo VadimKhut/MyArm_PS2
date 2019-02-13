@@ -1134,6 +1134,8 @@ void startPlayback(int in_playbackProgram) {
 				delay((cTime - cTimePrev) + INTERPOLATE);
 				cTimePrev = cTime;
 			}
+			
+			Control_PS2_Input_S();
 
 			#ifdef DEBUG
 			Serial.print(F("cTime=  "));
@@ -1227,6 +1229,9 @@ void loop() {
 	ga_tmp = GA_pos;
 
 	Control_PS2_Input();
+	
+	if (
+	
 
 	// Only perform IK calculations if arm motion is needed.
 	if (arm_move) {
