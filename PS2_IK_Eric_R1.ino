@@ -321,6 +321,7 @@ void DegToUsAll(void);
 void ServoUpdate(unsigned int DeltaTime, int BA_pos_us, int shl_pos_us, int shl1_pos_us, int elb_pos_us, int wri_pos_us, int WRro_pos_us, int Gr_pos_us);
 void MSound(byte cNotes, ...);
 void SoundNoTimer(unsigned long duration,  unsigned int frequency);
+void Control_PS2_Input_S(void);
 
 
 
@@ -1752,3 +1753,54 @@ void MSound(byte cNotes, ...){
 #else
 void MSound(byte cNotes, ...){};
 #endif //SOUND_PIN 
+
+
+
+// Function to read inputs from the PS2 
+//-------------------------------------------------------------------------------
+void Control_PS2_Input_S(void){
+
+	// Then try to receive a packet of information from the PS2.
+	ps2x.read_gamepad();                                  // read controller and set large motor to spin at 'vibrate' speed
+	
+	PS2ErrorCnt = 0;
+	
+	if ((ps2x.Analog(1) & 0xf0) == 0x70) {
+		
+		if (Ps2x.ButtonPressed(PSB_START)) {             // Start Button Test 
+			
+			if (fArmOn) {                                // Turn off
+				
+				TurnArmOff();
+			} 
+		}
+		
+		
+		if (ps2x.ButtonPressed(PSB_CROSS)) {			// X - Cross Button Test
+			
+			MSound(1, 50, 2000);						// [50\4000]
+			StopPlay();									// stop play
+		}
+	}  // end, if((ps2x.Analog(1) & 0xf0) == 0x70), read PS2 controller 
+	else {
+		if (g_sPS2ErrorCnt < MAXPS2ERRORCNT)
+			
+			g_sPS2ErrorCnt++;							// Increment the error count and if to many errors, turn off the robot.
+		
+		else if (fArmOn){
+			
+			TurnArmOff();
+			
+		}  
+		
+		ps2x.reconfig_gamepad();
+	}
+} // end, Control_PS2_Input_S 
+
+
+
+
+
+
+
+
