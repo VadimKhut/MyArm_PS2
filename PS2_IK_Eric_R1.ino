@@ -325,6 +325,7 @@ void ServoUpdate(unsigned int DeltaTime, int BA_pos_us, int shl_pos_us, int shl1
 void MSound(byte cNotes, ...);
 void SoundNoTimer(unsigned long duration,  unsigned int frequency);
 void Control_PS2_Input_S(void);
+void delay_ms( unsigned long delayTime_ms);
 
 
 
@@ -1112,10 +1113,10 @@ void startPlayback(int in_playbackProgram) {
 			ServoUpdate(INTERPOLATE, BA, shl, shl1, elb, wri, WRro, Gr);
 
 			if (cTime == 0) {
-				delay(INTERPOLATE + 500);
+				delay_ms(INTERPOLATE + 500);
 			}
 			else {
-				delay((cTime - cTimePrev) + INTERPOLATE);
+				delay_ms((cTime - cTimePrev) + INTERPOLATE);
 				cTimePrev = cTime;
 			}
 
@@ -1139,7 +1140,12 @@ void startPlayback(int in_playbackProgram) {
 			Serial.print(F("fileLine=  "));
 			Serial.println(fileLine);
 			#endif
+			
+			Control_PS2_Input_S();
 
+			if(fButtonStop == true){
+				break;
+			}
 		} // while
 	}
 
@@ -1237,6 +1243,7 @@ void loop() {
 				// Selection has been made. Start playback.
 				startPlayback(playbackProgram);
 				fButtonPlay = false;
+				fButtonStop = false;
 			}
 			else {
 
@@ -1246,7 +1253,6 @@ void loop() {
 
 				startSelect();
 			}
-
 		}
 
 
@@ -1840,18 +1846,19 @@ void Control_PS2_Input_S(void) {
 
 void delay_ms( unsigned long delayTime_ms) {
 
-	unsigned long cDelayTime_ms;
+	unsigned long carTime_ms;
 
-	cDelayTime_ms = millis();                   //
+	carTime_ms = millis();                   // save carent time
 
 	do{
 
 		Control_PS2_Input_S();
-		if
+		
+		if( fButtonStop == true)
+			break;
+		
 		delay(20);
 
 
-	} while( millis() - cDelayTime_ms < delayTime_ms )
-
-
+	} while( millis() - carTime_ms < delayTime_ms )
 }
