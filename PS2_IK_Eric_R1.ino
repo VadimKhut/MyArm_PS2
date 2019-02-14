@@ -758,7 +758,7 @@ void Control_PS2_Input(void){
 			}  
 
 
-			if(fPSB_CIRCLE_10s ){
+			if(fPSB_CIRCLE_10s) {
 
 				// First check to see if we need to record or stop.
 				if (Ps2x.ButtonPressed(PSB_CIRCLE)) {		   // PSB_CIRCLE Button Test
@@ -779,7 +779,7 @@ void Control_PS2_Input(void){
 
 					}
 					else {
-						startRecord();
+						fButtonRec = true;
 
 						//delay(200);
 					}
@@ -1226,7 +1226,7 @@ void loop() {
 		if(fButtonRec == true){
 
 			startRecord();
-			fRecStart_10s = false;
+			fButtonRec = false;
 		}
 
 
@@ -1789,3 +1789,46 @@ void MSound(byte cNotes, ...){
 #else
 void MSound(byte cNotes, ...){};
 #endif //SOUND_PIN 
+
+
+
+
+// Function to read inputs from the PS2 
+//-------------------------------------------------------------------------------
+void Control_PS2_Input_S(void){
+	// try to receive a packet of information from the PS2.
+	Ps2x.read_gamepad();                            // read controller
+	
+	PS2ErrorCnt = 0;
+	
+	if ((Ps2x.Analog(1) & 0xf0) == 0x70) {
+		
+		if (Ps2x.ButtonPressed(PSB_START)) {        // Start Button Test 
+			
+			if (fArmOn) {                           // Turn off
+				
+				TurnArmOff();
+			} 
+		}
+		
+		
+		if (Ps2x.ButtonPressed(PSB_CROSS)) {		// X - Cross Button Test
+			
+			MSound(1, 50, 2000);                    // [50\4000]
+			fButtonStop = true;
+		}
+	}  // end, if((ps2x.Analog(1) & 0xf0) == 0x70), read PS2 controller 
+	else {
+		if (PS2ErrorCnt < MAXPS2ERRORCNT)
+			
+			PS2ErrorCnt++;							// Increment the error count and if to many errors, turn off the robot.
+		
+		else if (fArmOn){
+			
+			fArmOn == false;
+			
+		}  
+		
+		Ps2x.reconfig_gamepad();
+	}
+} // end, Control_PS2_Input_S 
