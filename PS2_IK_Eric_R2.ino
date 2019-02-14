@@ -370,7 +370,7 @@ char name[] = "ARM000.CSV";         // Will be incremented to create a new file 
 // P = Playback
 // N = None
 char mode = 'N'; 
-long int recStart;
+unsigned long recStart;
 int playbackProgram = -1;
 int maxProgram = 0;
 
@@ -1114,11 +1114,11 @@ void setDisplay(char inMode) {
 
 void startPlayback(int in_playbackProgram) {
 
-	long int cTime;
+	unsigned long cTime;
 	int BA, shl, shl1, elb, wri, WRro, Gr;
 	char c1, c2, c3, c4, c5, c6, c7;   // commas
-	long int fileLine = 0;
-	long int cTimePrev = 0;
+	unsigned long fileLine = 0;
+	unsigned long cTimePrev = 0;
 	
 
 	setName(in_playbackProgram);
