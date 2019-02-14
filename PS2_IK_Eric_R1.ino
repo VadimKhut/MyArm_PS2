@@ -281,12 +281,10 @@ static short	PS2ErrorCnt;
 #define	T_PARK_MID			2000
 #define THRESHOLD_REC		10     // threshold for Record to SD card changing the servo position   
 
-
 // Audible feedback sounds
 // #define TONE_READY		1000	// Hz
 // #define TONE_IK_ERROR	200		// Hz
 // #define TONE_DURATION	100		// ms
-
 
 float shl_pos, elb_pos, wri_pos;
 int BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, Gr_pos_us, WRro_pos_us;
@@ -707,7 +705,6 @@ void Control_PS2_Input(void){
 					#ifdef DEBUG	
 						Serial.print(F("  PlProgr: "));
 						Serial.println(playbackProgram);
-						//Serial.println(F("  "));
 					#endif
 
 						delay(200);
@@ -720,17 +717,18 @@ void Control_PS2_Input(void){
 
 
 			if(Ps2x.ButtonPressed(PSAB_PAD_LEFT) && (mode == 'S')) {           // PSAB_PAD_LEFT Test
+				
 				if (playbackProgram > 1) {
 					playbackProgram--;
 					setName(playbackProgram);
 					setDisplay('S');
+					
 					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
 					MSound(1, 50, 6000);
 
 				#ifdef DEBUG	
 					Serial.print(F("  PlProgr: "));
 					Serial.println(playbackProgram);
-					//Serial.println(F("  "));
 				#endif
 
 					delay(200);
@@ -780,13 +778,12 @@ void Control_PS2_Input(void){
 
 					}
 					else {
+						
 						fButtonRec = true;
 
 						//delay(200);
 					}
-					
 				}
-
 			} // fPSB_CIRCLE_10s 
 
 			
@@ -819,11 +816,11 @@ void Control_PS2_Input(void){
 					fPSB_SQUARE_4s = false;
 				}
 			} // fPSB_SQUARE_4s
-
 		} // fArmOn
 
 
 	} // end, if((Ps2x.Analog(1) & 0xf0) == 0x70), read PS2 controller 
+	
 	else {
 		if (PS2ErrorCnt < MAXPS2ERRORCNT)
 
@@ -1113,14 +1110,16 @@ void startPlayback(int in_playbackProgram) {
 			ServoUpdate(INTERPOLATE, BA, shl, shl1, elb, wri, WRro, Gr);
 
 			if (cTime == 0) {
+				
 				delay_ms(INTERPOLATE + 500);
 			}
 			else {
+				
 				delay_ms((cTime - cTimePrev) + INTERPOLATE);
 				cTimePrev = cTime;
 			}
 
-			#ifdef DEBUG
+		#ifdef DEBUG
 			Serial.print(F("cTime=  "));
 			Serial.print(cTime);
 			Serial.print(c1);
@@ -1139,14 +1138,14 @@ void startPlayback(int in_playbackProgram) {
 			Serial.print(" "); Serial.println(Gr);
 			Serial.print(F("fileLine=  "));
 			Serial.println(fileLine);
-			#endif
+		#endif
 			
 			Control_PS2_Input_S();
 
 			if(fButtonStop == true){
 				break;
 			}
-		} // while
+		} // end while
 	}
 
 	mode = 'N';
