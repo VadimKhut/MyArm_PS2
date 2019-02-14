@@ -1795,7 +1795,8 @@ void MSound(byte cNotes, ...){};
 
 // Function to read inputs from the PS2 
 //-------------------------------------------------------------------------------
-void Control_PS2_Input_S(void){
+void Control_PS2_Input_S(void) {
+	
 	// try to receive a packet of information from the PS2.
 	Ps2x.read_gamepad();                            // read controller
 	
@@ -1832,3 +1833,25 @@ void Control_PS2_Input_S(void){
 		Ps2x.reconfig_gamepad();
 	}
 } // end, Control_PS2_Input_S 
+
+
+
+
+
+void delay_ms( unsigned long delayTime_ms) {
+
+	unsigned long cDelayTime_ms;
+
+	cDelayTime_ms = millis();                   //
+
+	do{
+
+		Control_PS2_Input_S();
+		if
+		delay(20);
+
+
+	} while( millis() - cDelayTime_ms < delayTime_ms )
+
+
+}
