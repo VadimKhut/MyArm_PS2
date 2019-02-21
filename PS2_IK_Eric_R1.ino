@@ -294,7 +294,8 @@ bool fServosAttached = false;      // remember we are not attached. Could simply
 bool fArmOn = false;
 bool fArmOn_prev = false;
 bool arm_move = false;             // Used to indidate whether an input occurred that can move the arm
-bool fButtonPlay = false;
+bool fButtonPlay1 = false;
+bool fButtonPlay2 = false;
 bool fButtonRec = false;
 bool fButtonStop = false;
 
@@ -396,6 +397,9 @@ void TurnArmOff(void){
 
 	TM1637Display_Off();
 	fPSB_CIRCLE_10s = false;
+	fPSB_SQUARE_4s = false;
+	fButtonPlay = false;
+	fButtonRec = false;	
 	}
 
   #ifdef DEBUG
@@ -419,15 +423,16 @@ void TurnArmOn(void){
 	
 	// NOTE: Ensure arm is close to the desired park position before turning on Servo power!
 	servo_park(PARK_READY);
-
+	
+#ifdef DEBUG
 	Serial.print(F("PARK_ms_st: "));
 	Serial.println(millis());
-
+#endif
 	delay_ms(T_PARK_ON);
-
+#ifdef DEBUG
 	Serial.print(F("PARK_ms_end: "));
 	Serial.println(millis());
-
+#endif
 #ifdef DEBUG
 	// feetback check
 	Bas_fb = Bas_Servo.read();
@@ -849,13 +854,21 @@ void Control_PS2_Input(void){
 			// Now check if we need to playback...
 			if(fPSB_SQUARE_4s){
 				
-				if (Ps2x.ButtonPressed(PSB_SQUARE)) {		   // PSB_SQUARE Button Test
+				if (Ps2x.ButtonPressed(PSB_SQUARE) && mode != 'S') {		   // PSB_SQUARE Button Test
 
 					//tone(SPK_PIN, TONE_READY , TONE_DURATION);
 					MSound(1, 50, 6000);
 
-					fButtonPlay = true;
+					fButtonPlay1 = true;
+				}
+				if (Ps2x.ButtonPressed(PSB_SQUARE) && mode == 'S') {		   // PSB_SQUARE Button Test
+
+					//tone(SPK_PIN, TONE_READY , TONE_DURATION);
+					MSound(1, 50, 6000);
+
+					fButtonPlay2 = true; 
 					fPSB_SQUARE_4s = false;
+					
 				}
 			} // fPSB_SQUARE_4s
 		} // fArmOn
@@ -1285,26 +1298,31 @@ void loop() {
 		}
 
 
-		if (fButtonPlay == true) {
+		if(fButtonPlay2 == true) {
 
 			if (mode == 'S') {
-
+				
+				#ifdef DEBUG
+					Serial.println(F("StartPlayback"));
+				#endif
+				
 				// Selection has been made. Start playback.
 				startPlayback(playbackProgram);
-				fButtonPlay = false;
+				fButtonPlay2 = false;
 				fButtonStop = false;
 			}
-			else {
+		}
+
+		if(fButtonPlay1 == true) {
 
 				#ifdef DEBUG
-					Serial.println(F("Play button press!"));
+					Serial.println(F("StartSelect"));
 				#endif
 
 				startSelect();
-			}
-
+				fButtonPlay1 = false;
 		}
-
+		
 
 
 		// Only perform IK calculations if arm motion is needed.
