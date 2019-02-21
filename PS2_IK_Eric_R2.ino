@@ -296,7 +296,8 @@ bool fServosAttached = false;      // remember we are not attached. Could simply
 bool fArmOn = false;
 bool fArmOn_prev = false;
 bool arm_move = false;             // Used to indidate whether an input occurred that can move the arm
-bool fButtonPlay = false;
+bool fButtonPlay1 = false;
+bool fButtonPlay2 = false;
 bool fButtonRec = false;
 bool fButtonStop = false;
 
@@ -326,6 +327,7 @@ void ServoUpdate(unsigned int DeltaTime, int BA_pos_us, int shl_pos_us, int shl1
 void MSound(byte cNotes, ...);
 void SoundNoTimer(unsigned long duration,  unsigned int frequency);
 void Control_PS2_Input_S(void);
+void delay_ms( unsigned long delayTime_ms);
 
 
 
@@ -376,10 +378,10 @@ int maxProgram = 0;
 
 unsigned long ulTimePSB_CIRCLE;
 unsigned long ulTimePSB_CROSS;
+unsigned long ulTimePSB_SQUARE;
 bool fRecStart_10s = false;
 bool fRecStop_10s = false;
 bool fCapture_pos = false;
-unsigned long ulTimePSB_SQUARE;
 bool fPSB_SQUARE_4s = false;
  
  
@@ -393,6 +395,18 @@ void TurnArmOff(void){
 
 	FreeServos();
 
+	if (mode != 'N') { 
+		mode = 'N'; 
+
+	TM1637Display_Off();
+	fPSB_SQUARE_4s = false;
+	fButtonPlay1 = false;
+	fButtonPlay2 = false;
+	fRecStart_10s = false;
+	fRecStop_10s = false;
+	fCapture_pos = false;
+	}
+	
   #ifdef DEBUG
 	Serial.println(F("Arm OFF!"));
   #endif
@@ -753,11 +767,7 @@ void Control_PS2_Input(void){
 
 			if ((Ps2x.Button(PSB_CIRCLE)) && (mode != 'R')) {	              // PSB_CIRCLE - (O) hold pressed 10sec
 
-				if ((millis() - ulTimePSB_CIRCLE) > 10000) {
-
-				#ifdef DEBUG
-					Serial.println(F("Record button press 10s"));
-				#endif
+				if ((millis() - ulTimePSB_CIRCLE) > 5000) {
 
 					//tone(SPK_PIN, TONE_READY , TONE_DURATION);
 					MSound(1, 50, 2000); 
@@ -767,6 +777,7 @@ void Control_PS2_Input(void){
 			}
 			else if ((Ps2x.ButtonPressed(PSB_CIRCLE)) && (mode == 'R')) {
 
+				MSound(1, 50, 6000);
 				fCapture_pos = true;
 			}
 
@@ -779,11 +790,7 @@ void Control_PS2_Input(void){
 			}  
 			else if ((Ps2x.Button(PSB_CROSS)) && (mode == 'R')) {	          // PSB_CROSS - (X) hold pressed 10sec
 
-				if ((millis() - ulTimePSB_CROSS) > 10000) {
-
-				#ifdef DEBUG
-					Serial.println(F("Stop Record button press 10s"));
-				#endif
+				if ((millis() - ulTimePSB_CROSS) > 5000) {
 
 					//tone(SPK_PIN, TONE_READY , TONE_DURATION);
 					MSound(1, 50, 2000); 
@@ -795,15 +802,16 @@ void Control_PS2_Input(void){
 
 
 
-
-
-
 			if (fRecStart_10s){
 				// First check to see if we need to record or stop.
 				if (Ps2x.ButtonPressed(PSB_CIRCLE)) {		                  // PSB_CIRCLE Button Test
 
 					MSound(1, 50, 6000);
 
+				#ifdef DEBUG
+					Serial.println(F("Record button press 10s"));
+				#endif
+					
 					fButtonRec = true; 
 					fRecStart_10s = false;
 
@@ -816,6 +824,10 @@ void Control_PS2_Input(void){
 			if (fRecStop_10s){
 				// First check to see if we need to record or stop.
 				if (Ps2x.ButtonPressed(PSB_CROSS)) {		                  // PSB_CROSS Button Test
+					
+				#ifdef DEBUG
+					Serial.println(F("Stop Record button press 10s"));
+				#endif
 
 					MSound(1, 50, 6000);
 
@@ -827,7 +839,7 @@ void Control_PS2_Input(void){
 						fCapture_pos = false;
 						fRecStop_10s = false;
 
-						delay(200);
+						//delay(200);
 					}
 				}
 			} // fRecStop_10s
@@ -852,17 +864,25 @@ void Control_PS2_Input(void){
 
 
 			// Now check if we need to playback...
-			if (fPSB_SQUARE_4s) {
+			if(fPSB_SQUARE_4s){
 				
-				if (Ps2x.ButtonPressed(PSB_SQUARE)) {		                  // PSB_SQUARE Button Test
+				if (Ps2x.ButtonPressed(PSB_SQUARE) && mode != 'S') {		   // PSB_SQUARE Button Test
 
 					//tone(SPK_PIN, TONE_READY , TONE_DURATION);
 					MSound(1, 50, 6000);
 
-					fButtonPlay = true;
-					fPSB_SQUARE_4s = false;
+					fButtonPlay1 = true;
 				}
-			} // fPSB_SQUARE_4s
+				if (Ps2x.ButtonPressed(PSB_SQUARE) && mode == 'S') {		   // PSB_SQUARE Button Test
+
+					//tone(SPK_PIN, TONE_READY , TONE_DURATION);
+					MSound(1, 50, 6000);
+
+					fButtonPlay2 = true; 
+					fPSB_SQUARE_4s = false;
+
+				}
+			} // fPSB_SQUARE_4s				
 		} // fArmOn
 
 
@@ -945,9 +965,18 @@ void startRecord(void) {
 
 #ifdef DEBUG
 	Serial.println(F("Start Record!")); // Vad
-#endif	
-
+	setDisplay('R'); // Vad
+#endif
+	
+	old_BA_pos_us = BA_pos_us; // vad
+	old_shl_pos_us = shl_pos_us;
+	old_elb_pos_us = elb_pos_us;
+	old_wri_pos_us = wri_pos_us;
+	old_WRro_pos_us = WRro_pos_us;
+	old_Gr_pos_us = Gr_pos_us;
+	
 	return;  // Vad
+
 
 
 	// Look at the SD card and figure out the new file name to use.
@@ -983,11 +1012,7 @@ void startRecord(void) {
 		// Need to first write the initial (current) position
 		// of the arm so it can be initialized upon playback.
 
-	 #ifdef DEBUG
-			Serial.print(F("SD: "));
-			Serial.print("0,"); Serial.print(BA_pos);
-	  #endif
-
+		myFile.print("0,"); myFile.print(BA_pos_us);
 		myFile.print(","); myFile.print(shl_pos_us);
 		myFile.print(","); myFile.print(shl1_pos_us);
 		myFile.print(","); myFile.print(elb_pos_us);
@@ -997,6 +1022,8 @@ void startRecord(void) {
 		myFile.close();
 
 	 #ifdef DEBUG
+		Serial.print(F("SD: "));
+		Serial.print("0,"); Serial.print(BA_pos_us);
 		Serial.print(","); Serial.print(shl_pos_us);
 		Serial.print(","); Serial.print(shl1_pos_us);
 		Serial.print(","); Serial.print(elb_pos_us);
@@ -1157,7 +1184,7 @@ void startPlayback(int in_playbackProgram) {
 				cTimePrev = cTime;
 			}
 
-			#ifdef DEBUG
+		#ifdef DEBUG
 			Serial.print(F("cTime=  "));
 			Serial.print(cTime);
 			Serial.print(c1);
@@ -1176,9 +1203,14 @@ void startPlayback(int in_playbackProgram) {
 			Serial.print(" "); Serial.println(Gr);
 			Serial.print(F("fileLine=  "));
 			Serial.println(fileLine);
-			#endif
-
-		} // while
+		#endif
+			
+			Control_PS2_Input_S();
+			
+			if(fButtonStop == true){
+				break;
+			}
+		} // end while
 	}
 
 	mode = 'N';
@@ -1234,9 +1266,20 @@ void setup(){
 void loop() {
 
 
+	// Store desired position in tmp variables until confirmed by doArmIK() logic
+	#ifdef CYL_IK   // 2D kinematics
+	// not used
+	#else           // 3D kinematics
+	x_tmp = X;
+	#endif
+	y_tmp = Y;
+	z_tmp = Z;
+	ga_tmp = GA_pos;
 
 	Control_PS2_Input();
 
+	
+	
 	if(fArmOn == true) {
 
 		if(fArmOn == true && fArmOn_prev == false){      // Turn Arm On
@@ -1245,20 +1288,6 @@ void loop() {
 		}
 
 
-		// Store desired position in tmp variables until confirmed by doArmIK() logic
-		#ifdef CYL_IK   // 2D kinematics
-
-		// not used
-
-		#else           // 3D kinematics
-
-		x_tmp = X;
-
-		#endif
-
-		y_tmp = Y;
-		z_tmp = Z;
-		ga_tmp = GA_pos;
 
 
 		if (fCapture_pos) {
@@ -1267,6 +1296,7 @@ void loop() {
 			fCapture_pos = false;
 		}	
 
+		
 
 		if(fButtonRec == true){
 
@@ -1275,24 +1305,33 @@ void loop() {
 		}
 
 
-		if (fButtonPlay == true) {
+		
+		if(fButtonPlay2 == true) {
 
 			if (mode == 'S') {
 
+			#ifdef DEBUG
+				Serial.println(F("StartPlayback"));
+			#endif
+
 				// Selection has been made. Start playback.
 				startPlayback(playbackProgram);
-				fButtonPlay = false;
+				fButtonPlay2 = false;
+				fButtonStop = false;
 			}
-			else {
-
-				#ifdef DEBUG
-					Serial.println(F("Play button press!"));
-				#endif
-
-				startSelect();
-			}
-
 		}
+
+		
+		if(fButtonPlay1 == true) {
+
+		#ifdef DEBUG
+			Serial.println(F("StartSelect"));
+		#endif
+
+			startSelect();
+			fButtonPlay1 = false;
+		}
+		
 
 
 
@@ -1459,9 +1498,9 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 		return IK_ERROR;
 
 	// feetback check
-	Shl_fb = Shl_Servo.read();
-	Elb_fb = Elb_Servo.read();
-	Wri_fb = Wri_Servo.read();
+	//Shl_fb = Shl_Servo.read();
+	//Elb_fb = Elb_Servo.read();
+	//Wri_fb = Wri_Servo.read();
 	//Wro_fb = Wro_Servo.read();
 	//Gri_fb = Gri_Servo.read();
 
@@ -1480,25 +1519,25 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 	Serial.println();
 
  #ifndef CYL_IK   // 3D kinematics
-	Bas_fb = Bas_Servo.read();
+	//Bas_fb = Bas_Servo.read();
 
 	Serial.print("  Base Pos 3D: ");
 	Serial.print(BA_pos);
-	Serial.print("  Base Fb: ");
-	Serial.print(Bas_fb);
+	//Serial.print("  Base Fb: ");
+	//Serial.print(Bas_fb);
  #endif
 	Serial.print("  Shld Pos: ");
 	Serial.print(shl_pos);
-	Serial.print("  Shld Fb: ");
-	Serial.print(Shl_fb);
+	//Serial.print("  Shld Fb: ");
+	//Serial.print(Shl_fb);
 	Serial.print("  Elbw Pos: ");
 	Serial.print(elb_pos);
-	Serial.print("  Elbw Fb: ");
-	Serial.print(Elb_fb);
+	//Serial.print("  Elbw Fb: ");
+	//Serial.print(Elb_fb);
 	Serial.print("  Wrst Pos: ");
 	Serial.print(wri_pos);
-	Serial.print("  Wri Fb: ");
-	Serial.print(Wri_fb);
+	//Serial.print("  Wri Fb: ");
+	//Serial.print(Wri_fb);
 //	Serial.print("  WrRO Fb: ");
 //	Serial.print(Wro_fb);
 //	Serial.print("  Grip Fb: ");
@@ -1537,6 +1576,39 @@ void DegToUsAll(void) {
 	WRro_pos_us = deg_to_us(WRro_pos);
 	Gr_pos_us = deg_to_us(Gr_pos);
 
+	
+#ifdef DEBUG
+	Serial.print(F("BA_pos: "));
+	Serial.print(BA_pos);
+	Serial.print(F("  shl_pos: "));
+	Serial.print(shl_pos);
+	Serial.print(F("  elb_pos: "));
+	Serial.print(elb_pos);
+	Serial.print(F("  wri_pos: "));
+	Serial.print(wri_pos);
+	Serial.print(F("  WRro_pos: "));
+	Serial.print(WRro_pos);
+	Serial.print(F("  Gr_pos: "));
+	Serial.println(Gr_pos);
+	Serial.println();
+	Serial.print(F("BA_pos_us: "));
+	Serial.print(BA_pos_us);
+	Serial.print(F("  shl_pos_us: "));
+	Serial.print(shl_pos_us);
+	Serial.print(F("  shl1_pos_us: "));
+	Serial.print(shl1_pos_us);
+	Serial.print(F("  elb_pos_us: "));
+	Serial.print(elb_pos_us);
+	Serial.print(F("  wri_pos_us: "));
+	Serial.print(wri_pos_us);
+	Serial.print(F("  WRro_pos_us: "));
+	Serial.print(WRro_pos_us);
+	Serial.print(F("  Gr_pos_us: "));
+	Serial.println(Gr_pos_us);
+	Serial.println();
+#endif
+	
+	
 	if ((mode == 'R') && (fCapture_pos == true)) {
 
 		if (old_BA_pos_us != BA_pos_us || old_shl_pos_us != shl_pos_us || old_elb_pos_us != elb_pos_us ||
@@ -1580,6 +1652,11 @@ void ServoUpdate(unsigned int MoveTime, int BA_us, int shl_us, int shl1_us, int 
 	Gri_Servo.writeMicroseconds(Gr_us);
 
 	ServoGroupMove.commit(MoveTime);
+	
+#ifdef DEBUG
+	Serial.println(F("ServoUpdate"));
+#endif
+	
 }
  
 
@@ -1595,85 +1672,76 @@ void servo_park(int park_type) {
 		// All servos at MidPoint position
 		case PARK_MIDPOINT:
 
-	#ifdef DEBUG
+		#ifdef DEBUG
 			Serial.println("PARK_MIDPOINT:");
-	#endif
+		#endif
 			
-			#ifdef CYL_IK   // 2D kinematics
+		#ifdef CYL_IK   // 2D kinematics
 			 BA_park_us = deg_to_us(BAS_MID);
-			#else           // 3D kinematics
+		#else           // 3D kinematics
 			 BA_park_us = deg_to_us(BAS_MID);
-			#endif
+		#endif
 			shl_park_us = deg_to_us(SHL_MID);
 			shl1_park_us = deg_to_us(185-SHL_MID);
 			elb_park_us = deg_to_us(ELB_MID);
 			wri_park_us = deg_to_us(WRI_MID);
 			WRro_park_us = deg_to_us(WRO_MID);
 			Gr_park_us = deg_to_us(GRI_MID);
+			
+			ServoUpdate(T_PARK_MID, BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us);
+			
 			break;
 
-			ServoUpdate(T_PARK_MID,BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us);
 
 		// Ready-To-Run position
 		case PARK_READY:
 			
 	#ifdef CYL_IK   // 2D kinematics
-
 		#ifdef DEBUG
 			Serial.println("PARK_READY:");
-			Serial.print("  Base: ");
-			Serial.println(READY_BA);
 		#endif
 			
 			doArmIK(0.0, READY_Y, READY_Z, READY_GRA); // 0; 170; 45; 0
-
 			BA_pos = READY_BA; // 90
 			
-
 	#else           // 3D kinematics
-
 			doArmIK(READY_X, READY_Y, READY_Z, READY_GRA); // 0; 170; 45; 0
-
 	#endif
-
 			WRro_pos = READY_WRO;  // 90 
 			Gr_pos = READY_GR;     // 90
-
 			DegToUsAll();
 			
 			ServoUpdate(T_PARK_ON, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
-
-
-		#ifdef DEBUG
-			Serial.print("  Grip: ");
-			Serial.println(READY_GR);
-			Serial.print("  WR_RO: ");
-			Serial.println(READY_WRO);
-		#endif
+			Y = READY_Y;
+			Z = READY_Z;
+			GA_pos = READY_GRA;
+			BA_pos_n = BA_pos;
+			WRro_pos_n = WRro_pos;
+			Gr_pos_n = Gr_pos;
 			break;
 		
 		// All servos at PARK_OFF position
 		case PARK_OFF:
 			
-	#ifdef DEBUG
+		#ifdef DEBUG
 			Serial.println("PARK_OFF:");
+		#endif
+	#ifdef CYL_IK   // 2D kinematics
+			 BA_park_us = deg_to_us(BAS_OFF);
+	#else           // 3D kinematics
+			 BA_park_us = deg_to_us(BAS_OFF);
 	#endif
-
-			#ifdef CYL_IK   // 2D kinematics
-			 BA_park_us = deg_to_us(BAS_OFF);
-			#else           // 3D kinematics
-			 BA_park_us = deg_to_us(BAS_OFF);
-			#endif
 			shl_park_us = deg_to_us(SHL_OFF);
 			shl1_park_us = deg_to_us(185-SHL_OFF);
 			elb_park_us = deg_to_us(ELB_OFF);
 			wri_park_us = deg_to_us(WRI_OFF);
 			WRro_park_us = deg_to_us(WRO_OFF);
 			Gr_park_us = deg_to_us(GRI_OFF);
+			
+			ServoUpdate(T_PARK_OFF, BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us);
+			
 			break;
 	}
-	
-	ServoUpdate(T_PARK_OFF, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
 }
 
 
@@ -1834,3 +1902,22 @@ void Control_PS2_Input_S(void){
 		Ps2x.reconfig_gamepad();
 	}
 } // end, Control_PS2_Input_S 
+
+
+
+void delay_ms( unsigned long delayTime_ms) {
+	
+	unsigned long carTime_ms;
+	
+	carTime_ms = millis();                   // save carent time
+	
+	do{
+		Control_PS2_Input_S();
+		
+		if( fButtonStop == true)
+			break;
+		
+		delay(20);
+
+	} while( millis() - carTime_ms < delayTime_ms );
+}
