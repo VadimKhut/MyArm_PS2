@@ -305,6 +305,8 @@ bool fPSB_SQUARE_4s = false;
 unsigned long ulTimePSB_CIRCLE;
 unsigned long ulTimePSB_SQUARE;
 unsigned long cTimePrev;
+unsigned int SpeedControl;
+
 
 
 
@@ -1000,7 +1002,7 @@ void startRecord(void) {
 
 		mode = 'R';
 
-		cTimePrev = millis();
+		cTimePrev = millis();                      // save start record Time
 
 	 #ifdef DEBUG
 		Serial.print(F("RecStart: "));
@@ -1160,10 +1162,13 @@ void startPlayback(int in_playbackProgram) {
 				continue;
 			
 			fileLine++;
+			
+			SpeedControl
 
 			ServoUpdate(INTERPOLATE, BA, shl, shl1, elb, wri, WRro, Gr);
 
 			if (TimeDelay == 0) {
+				
 
 				delay_ms(INTERPOLATE + 500);
 			}
