@@ -305,8 +305,8 @@ bool fPSB_SQUARE_4s = false;
 unsigned long ulTimePSB_CIRCLE;
 unsigned long ulTimePSB_SQUARE;
 unsigned long cTimePrev;
-unsigned int SpeedControl = 100;
-
+unsigned int PlaySpeed = 100;
+unsigned int ServoMoveTime;
 
 
 
@@ -716,16 +716,16 @@ void Control_PS2_Input(void){
 
 
 			// Speed increase/decrease
-			if (Ps2x.ButtonPressed(PSB_PAD_UP) || Ps2x.ButtonPressed(PSB_PAD_DOWN)) {  // PAD_UP OR PAD_DOWN Test
+			if (Ps2x.ButtonPressed(PSB_PAD_UP) && (mode != 'S')) {  // PAD_UP OR PAD_DOWN Test
 
-				if (Ps2x.ButtonPressed(PSB_PAD_UP)) {
+				Speed += SPEED_INCREMENT;   // increase speed
+			}
 
-					Speed += SPEED_INCREMENT;   // increase speed
-				}
-				else {
+			if (Ps2x.ButtonPressed(PSB_PAD_DOWN) && (mode != 'S')) {    // PAD_UP OR PAD_DOWN Test
 
 					Speed -= SPEED_INCREMENT;   // decrease speed
-				}
+			}
+
 				// Constrain to limits
 				Speed = constrain(Speed, SPEED_MIN, SPEED_MAX);
 
@@ -738,74 +738,27 @@ void Control_PS2_Input(void){
 				MSound(1, 50, 6000);
 			}
 
-			
 
-			// PlaybackProgram increase/decrease
-			if (Ps2x.ButtonPressed(PSB_PAD_RIGHT) && (mode == 'S')) {         // PSAB_PAD_RIGHT Test
+		
+		
+		
+		
+		
+		
 
-					if (playbackProgram < maxProgram) {
-
-						playbackProgram++;
-						setName(playbackProgram);
-						setDisplay('S');
-
-						//tone(SPK_PIN, TONE_READY, TONE_DURATION);
-						MSound(1, 50, 6000);
-
-					#ifdef DEBUG	
-						Serial.print(F("  PlProgr: "));
-						Serial.println(playbackProgram);
-						//Serial.println(F("  "));
-					#endif
-
-						delay(50);
-					}
-					else {
-						//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
-						MSound (2, 40, 2500, 40, 2500);
-					}
-			}
-
-
-			if(Ps2x.ButtonPressed(PSB_PAD_LEFT) && (mode == 'S')) {           // PSAB_PAD_LEFT Test
-
-				if (playbackProgram > 1) {
-					playbackProgram--;
-					setName(playbackProgram);
-					setDisplay('S');
-
-					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
-					MSound(1, 50, 6000);
-
-				#ifdef DEBUG	
-					Serial.print(F("  PlProgr: "));
-					Serial.println(playbackProgram);
-					//Serial.println(F("  "));
-				#endif
-
-					delay(50);
-				}
-				else {
-					//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
-					MSound (2, 40, 2500, 40, 2500);
-				}
-			}
-
-
-			
 			// Playback - Speed control:
 			//Increase speed with -50mS   -->
-			if (Ps2x.ButtonPressed(PSB_PAD_RIGHT) && (mode == 'P')) {         // PSAB_PAD_RIGHT Test
+			if (Ps2x.ButtonPressed(PSB_PAD_DOWN) && (mode == 'S')) {         // PSB_PAD_DOWN Test
 
-				if (SpeedControl > 0) {
-					SpeedControl = SpeedControl - 50;
+				if (PlaySpeed > 0) {
+					PlaySpeed = PlaySpeed - 50;
 
 					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
 					MSound(1, 50, 6000);
 
 				#ifdef DEBUG	
-					Serial.print(F("SpeedControl: "));
-					Serial.println(SpeedControl);
+					Serial.print(F("PlaySpeed: "));
+					Serial.println(PlaySpeed);
 				#endif
 
 					delay(50);
@@ -815,21 +768,19 @@ void Control_PS2_Input(void){
 					MSound (2, 40, 2500, 40, 2500);
 				}
 			}
-			
-			
 
 			//-Decrease speed +50mS   <--
-			if(Ps2x.ButtonPressed(PSB_PAD_LEFT) && (mode == 'P')) {           // PSAB_PAD_LEFT Test
+			if(Ps2x.ButtonPressed(PSB_PAD_UP) && (mode == 'S')) {           // PSB_PAD_UP Test
 
-				if (SpeedControl < 2000) {
-					SpeedControl = SpeedControl + 50;
+				if (PlaySpeed < 2000) {
+					PlaySpeed = PlaySpeed + 50;
 
 					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
 					MSound(1, 50, 6000);
 
 				#ifdef DEBUG	
-					Serial.print(F("SpeedControl: "));
-					Serial.println(SpeedControl);
+					Serial.print(F("PlaySpeed: "));
+					Serial.println(PlaySpeed);
 				#endif
 
 					delay(50);
@@ -840,6 +791,8 @@ void Control_PS2_Input(void){
 				}
 			}
 
+
+			
 			
 			
 			// Record
@@ -1212,7 +1165,7 @@ void startPlayback(int in_playbackProgram) {
 			
 			fileLine++;
 			
-			SpeedControl
+			ServoMoveTime = INTERPOLATE + PlaySpeed;
 
 			ServoUpdate(INTERPOLATE, BA, shl, shl1, elb, wri, WRro, Gr);
 
@@ -1957,17 +1910,17 @@ void Control_PS2_Input_S(void){
 		
 		// Playback - Speed control:
 		//Increase speed with -50mS   -->
-		if (Ps2x.ButtonPressed(PSB_PAD_RIGHT) && (mode == 'P')) {         // PSAB_PAD_RIGHT Test
+		if (Ps2x.ButtonPressed(PSB_PAD_DOWN) && (mode == 'P')) {         // PSB_PAD_DOWN Test
 
-			if (SpeedControl > 0) {
-				SpeedControl = SpeedControl - 50;
+			if (PlaySpeed > 0) {
+				PlaySpeed = PlaySpeed - 50;
 
 				//tone(SPK_PIN, TONE_READY, TONE_DURATION);
 				MSound(1, 50, 6000);
 
 			#ifdef DEBUG	
-				Serial.print(F("SpeedControl: "));
-				Serial.println(SpeedControl);
+				Serial.print(F("PlaySpeed: "));
+				Serial.println(PlaySpeed);
 			#endif
 
 				delay(50);
@@ -1979,17 +1932,17 @@ void Control_PS2_Input_S(void){
 		}
 
 		//-Decrease speed +50mS   <--
-		if(Ps2x.ButtonPressed(PSB_PAD_LEFT) && (mode == 'P')) {           // PSAB_PAD_LEFT Test
+		if(Ps2x.ButtonPressed(PSB_PAD_UP) && (mode == 'P')) {           // PSB_PAD_UP Test
 
-			if (SpeedControl < 2000) {
-				SpeedControl = SpeedControl + 50;
+			if (PlaySpeed < 2000) {
+				PlaySpeed = PlaySpeed + 50;
 
 				//tone(SPK_PIN, TONE_READY, TONE_DURATION);
 				MSound(1, 50, 6000);
 
 			#ifdef DEBUG	
-				Serial.print(F("SpeedControl: "));
-				Serial.println(SpeedControl);
+				Serial.print(F("PlaySpeed: "));
+				Serial.println(PlaySpeed);
 			#endif
 
 				delay(50);
