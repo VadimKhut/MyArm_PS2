@@ -305,7 +305,7 @@ bool fPSB_SQUARE_4s = false;
 unsigned long ulTimePSB_CIRCLE;
 unsigned long ulTimePSB_SQUARE;
 unsigned long cTimePrev;
-unsigned int PlaySpeed = 100;
+int PlaySpeed = 100;
 unsigned int ServoMoveTime;
 
 
@@ -744,7 +744,7 @@ void Control_PS2_Input(void){
 			//Increase speed with -50mS   -->
 			if (Ps2x.ButtonPressed(PSB_PAD_DOWN) && (mode == 'S')) {         // PSB_PAD_DOWN Test
 
-				if (PlaySpeed > 0) {
+				if (PlaySpeed > -2000) {
 					PlaySpeed = PlaySpeed - 50;
 
 					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
