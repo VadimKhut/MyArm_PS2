@@ -305,7 +305,7 @@ bool fPSB_SQUARE_4s = false;
 unsigned long ulTimePSB_CIRCLE;
 unsigned long ulTimePSB_SQUARE;
 unsigned long cTimePrev;
-unsigned int SpeedControl;
+unsigned int SpeedControl = 100;
 
 
 
@@ -792,7 +792,56 @@ void Control_PS2_Input(void){
 			}
 
 
+			
+			// Playback - Speed control:
+			//Increase speed with -50mS   -->
+			if (Ps2x.ButtonPressed(PSB_PAD_RIGHT) && (mode == 'P')) {         // PSAB_PAD_RIGHT Test
 
+				if (SpeedControl > 0) {
+					SpeedControl = SpeedControl - 50;
+
+					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
+					MSound(1, 50, 6000);
+
+				#ifdef DEBUG	
+					Serial.print(F("SpeedControl: "));
+					Serial.println(SpeedControl);
+				#endif
+
+					delay(50);
+				}
+				else {
+					//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
+					MSound (2, 40, 2500, 40, 2500);
+				}
+			}
+			
+			
+
+			//-Decrease speed +50mS   <--
+			if(Ps2x.ButtonPressed(PSB_PAD_LEFT) && (mode == 'P')) {           // PSAB_PAD_LEFT Test
+
+				if (SpeedControl < 2000) {
+					SpeedControl = SpeedControl + 50;
+
+					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
+					MSound(1, 50, 6000);
+
+				#ifdef DEBUG	
+					Serial.print(F("SpeedControl: "));
+					Serial.println(SpeedControl);
+				#endif
+
+					delay(50);
+				}
+				else {
+					//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
+					MSound (2, 40, 2500, 40, 2500);
+				}
+			}
+
+			
+			
 			// Record
 			if (!Ps2x.Button(PSB_CIRCLE)) {		               // PSB_CIRCLE not pressed
 
@@ -1903,6 +1952,52 @@ void Control_PS2_Input_S(void){
 			MSound(1, 50, 2000);                    // [50\4000]
 
 			fButtonStop = true;
+		}
+		
+		
+		// Playback - Speed control:
+		//Increase speed with -50mS   -->
+		if (Ps2x.ButtonPressed(PSB_PAD_RIGHT) && (mode == 'P')) {         // PSAB_PAD_RIGHT Test
+
+			if (SpeedControl > 0) {
+				SpeedControl = SpeedControl - 50;
+
+				//tone(SPK_PIN, TONE_READY, TONE_DURATION);
+				MSound(1, 50, 6000);
+
+			#ifdef DEBUG	
+				Serial.print(F("SpeedControl: "));
+				Serial.println(SpeedControl);
+			#endif
+
+				delay(50);
+			}
+			else {
+				//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
+				MSound (2, 40, 2500, 40, 2500);
+			}
+		}
+
+		//-Decrease speed +50mS   <--
+		if(Ps2x.ButtonPressed(PSB_PAD_LEFT) && (mode == 'P')) {           // PSAB_PAD_LEFT Test
+
+			if (SpeedControl < 2000) {
+				SpeedControl = SpeedControl + 50;
+
+				//tone(SPK_PIN, TONE_READY, TONE_DURATION);
+				MSound(1, 50, 6000);
+
+			#ifdef DEBUG	
+				Serial.print(F("SpeedControl: "));
+				Serial.println(SpeedControl);
+			#endif
+
+				delay(50);
+			}
+			else {
+				//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
+				MSound (2, 40, 2500, 40, 2500);
+			}
 		}
 	}  // end, if((ps2x.Analog(1) & 0xf0) == 0x70), read PS2 controller 
 
