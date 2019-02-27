@@ -738,12 +738,6 @@ void Control_PS2_Input(void){
 				MSound(1, 50, 6000);
 			}
 
-
-		
-		
-		
-		
-		
 		
 
 			// Playback - Speed control:
@@ -791,9 +785,7 @@ void Control_PS2_Input(void){
 				}
 			}
 
-
-			
-			
+	
 			
 			// Record
 			if (!Ps2x.Button(PSB_CIRCLE)) {		               // PSB_CIRCLE not pressed
@@ -1136,7 +1128,7 @@ void setDisplay(char inMode) {
 
 void startPlayback(int in_playbackProgram) {
 
-	unsigned int TimeDelay;
+	unsigned int TimeDelay, wTimeDelay;
 	int BA, shl, shl1, elb, wri, WRro, Gr;
 	char c1, c2, c3, c4, c5, c6, c7;   // commas
 	unsigned long fileLine = 0;
@@ -1165,18 +1157,19 @@ void startPlayback(int in_playbackProgram) {
 			
 			fileLine++;
 			
-			ServoMoveTime = INTERPOLATE + PlaySpeed;
+			ServoMoveTime = max(INTERPOLATE + PlaySpeed, INTERPOLATE);
 
-			ServoUpdate(INTERPOLATE, BA, shl, shl1, elb, wri, WRro, Gr);
+			ServoUpdate(ServoMoveTime, BA, shl, shl1, elb, wri, WRro, Gr);
 
 			if (TimeDelay == 0) {
-				
 
 				delay_ms(INTERPOLATE + 500);
 			}
 			else {
 
-				delay_ms(TimeDelay + INTERPOLATE);
+				wTimeDelay = max(INTERPOLATE + TimeDelay + PlaySpeed, INTERPOLATE);
+
+				delay_ms(wTimeDelay);
 			}
 
 		#ifdef DEBUG
