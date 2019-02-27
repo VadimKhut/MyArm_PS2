@@ -1657,7 +1657,8 @@ void ServoUpdate(unsigned int MoveTime, int BA_us, int shl_us, int shl1_us, int 
 	ServoGroupMove.commit(MoveTime);
 
 #ifdef DEBUG
-	Serial.println(F("ServoUpdate"));
+	Serial.print(F("ServoUpdate!  MoveTime= "));
+	Serial.println(MoveTime);
 #endif
 
 }
