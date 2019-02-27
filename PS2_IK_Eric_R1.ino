@@ -1484,14 +1484,6 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 	if (shl_pos < SHL_MIN || shl_pos > SHL_MAX || elb_pos < ELB_MIN || elb_pos > ELB_MAX || wri_pos < WRI_MIN || wri_pos > WRI_MAX)
 		return IK_ERROR;
 
-	// feetback check
-	//Shl_fb = Shl_Servo.read();
-	//Elb_fb = Elb_Servo.read();
-	//Wri_fb = Wri_Servo.read();
-	//Wro_fb = Wro_Servo.read();
-	//Gri_fb = Gri_Servo.read();
-
-
 #ifdef DEBUG
  #ifndef CYL_IK   // 3D kinematics
 	Serial.print("X: ");
@@ -1506,29 +1498,15 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 	Serial.println();
 
  #ifndef CYL_IK   // 3D kinematics
-	Bas_fb = Bas_Servo.read();
-
 	Serial.print("  Base Pos 3D: ");
 	Serial.println(BA_pos);
-	//Serial.print("  Base Fb: ");
-	//Serial.print(Bas_fb);
  #endif
 	Serial.print("  Shld Pos: ");
 	Serial.print(shl_pos);
-	//Serial.print("  Shld Fb: ");
-	//Serial.print(Shl_fb);
 	Serial.print("  Elbw Pos: ");
 	Serial.print(elb_pos);
-	//Serial.print("  Elbw Fb: ");
-	//Serial.print(Elb_fb);
 	Serial.print("  Wrst Pos: ");
 	Serial.print(wri_pos);
-	//Serial.print("  Wri Fb: ");
-	//Serial.print(Wri_fb);
-//	Serial.print("  WrRO Fb: ");
-//	Serial.print(Wro_fb);
-//	Serial.print("  Grip Fb: ");
-//	Serial.print(Gri_fb);
 	Serial.println();
 
  #ifndef CYL_IK   // 3D kinematics
@@ -1612,7 +1590,6 @@ void DegToUsAll(void) {
 
 		if (abs(shl_pos_us - old_shl_pos_us) > THRESHOLD_REC) {
 			writeCommand();
-			//old_shl_pos_us = shl_pos_us;
 		#ifdef DEBUG
 			Serial.println(F("R_shl"));
 		#endif
@@ -1621,7 +1598,6 @@ void DegToUsAll(void) {
 
 		if (abs(elb_pos_us - old_elb_pos_us) > THRESHOLD_REC) {
 			writeCommand();
-			//old_elb_pos_us = elb_pos_us;
 		#ifdef DEBUG
 			Serial.println(F("R_elb"));
 		#endif
@@ -1630,7 +1606,6 @@ void DegToUsAll(void) {
 
 		if (abs(wri_pos_us - old_wri_pos_us) > THRESHOLD_REC) {
 			writeCommand();
-			//old_wri_pos_us = wri_pos_us;
 		#ifdef DEBUG
 			Serial.println(F("R_wri"));
 		#endif
@@ -1640,7 +1615,6 @@ void DegToUsAll(void) {
 	
 		if (abs(WRro_pos_us - old_WRro_pos_us) > THRESHOLD_REC) {
 			writeCommand();
-			//old_WRro_pos_us = WRro_pos_us;
 		#ifdef DEBUG
 			Serial.println(F("R_WRro"));
 		#endif
@@ -1650,7 +1624,6 @@ void DegToUsAll(void) {
 
 		if (abs(Gr_pos_us - old_Gr_pos_us) > THRESHOLD_REC) {
 			writeCommand();
-			//old_Gr_pos_us = Gr_pos_us;
 		#ifdef DEBUG
 			Serial.println(F("R_Gr"));
 		#endif
