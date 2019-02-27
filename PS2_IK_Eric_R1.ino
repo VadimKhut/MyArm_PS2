@@ -745,6 +745,7 @@ void Control_PS2_Input(void){
 			if (Ps2x.ButtonPressed(PSB_PAD_DOWN) && (mode == 'S')) {         // PSB_PAD_DOWN Test
 
 				if (PlaySpeed > -2000) {
+					
 					PlaySpeed = PlaySpeed - 50;
 
 					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
@@ -767,6 +768,7 @@ void Control_PS2_Input(void){
 			if(Ps2x.ButtonPressed(PSB_PAD_UP) && (mode == 'S')) {           // PSB_PAD_UP Test
 
 				if (PlaySpeed < 2000) {
+					
 					PlaySpeed = PlaySpeed + 50;
 
 					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
@@ -1157,7 +1159,7 @@ void startPlayback(int in_playbackProgram) {
 			
 			fileLine++;
 			
-			ServoMoveTime = max(INTERPOLATE + PlaySpeed, INTERPOLATE);
+			ServoMoveTime = max((INTERPOLATE + PlaySpeed), INTERPOLATE);
 
 			ServoUpdate(ServoMoveTime, BA, shl, shl1, elb, wri, WRro, Gr);
 
@@ -1167,7 +1169,7 @@ void startPlayback(int in_playbackProgram) {
 			}
 			else {
 
-				wTimeDelay = max(INTERPOLATE + TimeDelay + PlaySpeed, INTERPOLATE);
+				wTimeDelay = max((INTERPOLATE + TimeDelay + PlaySpeed), INTERPOLATE);
 
 				delay_ms(wTimeDelay);
 			}
@@ -1905,7 +1907,8 @@ void Control_PS2_Input_S(void){
 		//Increase speed with -50mS   -->
 		if (Ps2x.ButtonPressed(PSB_PAD_DOWN) && (mode == 'P')) {         // PSB_PAD_DOWN Test
 
-			if (PlaySpeed > 0) {
+			if (PlaySpeed > -2000) {
+				
 				PlaySpeed = PlaySpeed - 50;
 
 				//tone(SPK_PIN, TONE_READY, TONE_DURATION);
@@ -1928,6 +1931,7 @@ void Control_PS2_Input_S(void){
 		if(Ps2x.ButtonPressed(PSB_PAD_UP) && (mode == 'P')) {           // PSB_PAD_UP Test
 
 			if (PlaySpeed < 2000) {
+				
 				PlaySpeed = PlaySpeed + 50;
 
 				//tone(SPK_PIN, TONE_READY, TONE_DURATION);
