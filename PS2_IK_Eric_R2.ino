@@ -1148,20 +1148,23 @@ void startSelect() {
 		setName(i);
 		if (sd.exists(name)) continue;
 		maxProgram = i-1;
+		// Get program to playback  // Vad!
+		if (playbackProgram == -1 )
+			playbackProgram = i-1;
 		break;
 	}
 
-	// Get program to playback
-	if (playbackProgram == -1 ) {
-
-		// Find latest recorded program and use that.
-		for (uint8_t i = 0; i < 1000; i++) {
-			setName(i);
-			if (sd.exists(name)) continue;
-			playbackProgram = i-1;
-			break;
-		}
-	}
+//	// Get program to playback
+//	if (playbackProgram == -1 ) {
+//
+//		// Find latest recorded program and use that.
+//		for (uint8_t i = 0; i < 1000; i++) {
+//			setName(i);
+//			if (sd.exists(name)) continue;
+//			playbackProgram = i-1;
+//			break;
+//		}
+//	}
 
 	setName(playbackProgram);
 	setDisplay('S');
