@@ -335,6 +335,7 @@ void delay_ms( unsigned long delayTime_ms);
 void SaveOldPos(void);
 void GetFeetbackAllServo(void);
 void Display_d(int dig_i);
+void ResetAllFlags(void); //Vad!
 
 
 
@@ -387,7 +388,7 @@ int maxProgram = 0;
  
  
  
-void TurnArmOff(void){
+void TurnArmOff(void){ // Vad!
     
 	servo_park(PARK_OFF);
 
@@ -403,7 +404,7 @@ void TurnArmOff(void){
 	fButtonPlay1 = false;
 	fButtonPlay2 = false;
 	fRecStart_10s = false;
-	fRecStart_10s = false;
+	fRecStop_10s = false;	
 	fButtonStop = false;
 	fCapture_pos = false;
 	}
@@ -861,9 +862,9 @@ void Control_PS2_Input(void){
 				ulTimePSB_CIRCLE = millis();                                  // reset ulTimePSB_CIRCLE
 
 			}  
-			else if ((Ps2x.Button(PSB_CIRCLE)) && (mode != 'R') && !fRecStart_10s) {	              // PSB_CIRCLE - (O) hold pressed 10sec
+			else if (Ps2x.Button(PSB_CIRCLE)) {	                             // PSB_CIRCLE - (O) hold pressed 10sec 
 
-				if ((millis() - ulTimePSB_CIRCLE) > 5000) {
+				if ((millis() - ulTimePSB_CIRCLE) > 5000) { // Vad!
 
 				#ifdef DEBUG
 					Serial.println(F("Record button press 5s"));
@@ -929,10 +930,7 @@ void Control_PS2_Input(void){
 						mode = 'N'; 
 
 						TM1637Display_Off();
-
-						fButtonRec = false;
-						fCapture_pos = false;
-						fRecStop_10s = false;
+						ResetAllFlags(); // Vad!
 					}
 				}
 			} // fRecStop_10s
@@ -2122,3 +2120,19 @@ void GetFeetbackAllServo(void) {
 	Serial.println();
 #endif
 }
+
+
+
+void ResetAllFlags(void) { //Vad
+
+	fPSB_SQUARE_4s = false;
+	fButtonPlay1 = false;
+	fButtonPlay2 = false;
+	fRecStart_10s = false;
+	fButtonRec = false;
+	fButtonStop = false;
+	fCapture_pos = false;
+}
+
+
+
