@@ -1345,6 +1345,11 @@ void startPlayback(int in_playbackProgram) {
 			else if(fButtonPause){
 
 				Serial.println(F("Pause_butt"));
+				data[0] = SEG_C;
+				data[1] = SEG_C;
+				data[2] = SEG_C;
+				data[3] = SEG_C;
+				display.setSegments(data);
 				DoPause();
 			}
 
@@ -1371,6 +1376,9 @@ void DoPause(void){   // do pause for Playback
 		if(!fButtonPause) {
 
 			Serial.println(F("Play_butt"));
+			
+			setDisplay('P');
+			
 			break;
 		}
 
