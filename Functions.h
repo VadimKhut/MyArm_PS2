@@ -222,3 +222,137 @@ void ControlInput_S(void){
 
 			} // fRecStart_10s
 
+								
+								
+								
+								
+//=============================================================================================================
+
+
+
+word              MandibleFSRInput;
+boolean           MandibleFSR_Activated;
+byte              POTCtrlPos;              // Controlled indirectly by the L1 and L2 button, inc/dec variable
+static const byte TorqueSelect[] PROGMEM = {0,64,128,192,255};
+word              TorqueLevel;
+byte              TorqueIndex;
+
+
+
+#define   FSR_p           A2     // A-INPUT
+
+//-------------------------------------------------------------------------------------------
+//[MAX/MIN FSR torque]
+//FSR connected to analog input: A2
+//Use a 10k resistor between GND and ADIN. Connect FSR between ADIN and VCC(+5v)
+//
+#define  cMandibleFSRmaxTorque  750  //Set the upper limit for how hard the grippers can pinch
+#define  cMandibleFSRminTorque  370  //Minimum torque level
+#define  cMandibleContact       350   //readings lower than this means that the mandibles probably don't touch anything
+#define  cTorqueMultiFactor     ((cMandibleFSRmaxTorque - cMandibleFSRminTorque) * c2DEC / 255) // (=176)
+//--------------------------------------------------------------------
+//[Servo PWM MIN/MAX values]
+//Mandible
+#define   cMandClosedPWM    1495
+#define   cMandOpenPWM      890
+
+
+
+
+TorqueLevel = (cMandibleFSRminTorque + (TorqueSelect[TorqueIndex] * cTorqueMultiFactor) / c2DEC); //=228
+
+
+      //-Mandible Open---------------------------
+      if (ps2x.Button(PSB_L1)) {                   // L1 Button Test
+        //MSound( 1, 50, 2000);                    // [50\4000] ### Vad1 
+        POTCtrlPos = min((POTCtrlPos+5), 255);
+      }
+      //-Mandible Close---------------------------
+      if (ps2x.Button(PSB_L2)) {                   // L2 Button Test
+        if (!MandibleFSR_Activated) { 
+          POTCtrlPos = max((POTCtrlPos-5), 0);     // Don't decrease this value if FSR is activated
+        }
+        //adjusting the torque using the left/right D-Pad:
+        //-Increase torque
+        if (ps2x.ButtonPressed(PSB_PAD_RIGHT)) {   // (L2 + D-Right), D-Right - Button Test
+          if (TorqueIndex < 4) {
+            TorqueIndex ++;
+            if (TorqueIndex == 4) {
+              MSound(1, 40, 3000);                 // [40\6000] reached the limit
+            }  
+            else {
+              MSound(1, 50, 2000);                 // [50\4000]
+            }
+            TorqueLevel = (cMandibleFSRminTorque + (TorqueSelect[TorqueIndex] * cTorqueMultiFactor) / c2DEC);
+          }
+        }  
+        //-Decrease torque--------------------------
+        if (ps2x.ButtonPressed(PSB_PAD_LEFT)) {    // (L2 + D-Left), D-Left - Button Test
+          if (TorqueIndex > 0) {
+            TorqueIndex --;
+            if (!TorqueIndex) {
+              MSound(1, 40, 1000);                 // [40\2000] reached the limit
+            }  
+            else {
+              MSound(1, 50, 2000);                 // [50\4000]
+            }
+            TorqueLevel = (cMandibleFSRminTorque + (TorqueSelect[TorqueIndex] * cTorqueMultiFactor) / c2DEC);
+          }
+        }  
+      }    
+      MandibleControl();                         // Call the mandible control 
+  #ifdef DEBUG
+    #ifdef  MONITOR_FSR
+      if (g_fDebugOutput) {
+        if (g_fDebugMonitorFSR) {
+        // DEBUG FSR
+          DBGSerial.print(F("POTCtrlPos:"));
+          DBGSerial.print(POTCtrlPos, DEC);
+          DBGSerial.print(F(" MandPWM:"));
+          DBGSerial.print(MandPWM, DEC);
+          DBGSerial.print(F(" FSR: "));
+          DBGSerial.print(MandibleFSRInput, DEC);
+          DBGSerial.print(F(" TorqueLevel = "));
+          DBGSerial.print(TorqueLevel, DEC);
+          DBGSerial.print(F(" TDF:"));
+          DBGSerial.println(cTorqueMultiFactor, DEC);
+        }  
+      }   
+    #endif
+  #endif
+
+
+
+
+  //-------------------------------------------------------------------------------
+// [MandibleControl]
+//-------------------------------------------------------------------------------
+void MandibleControl(void){
+  
+  MandibleFSRInput = analogRead(FSR_p);              // Read FSR
+  
+  if(MandibleFSRInput > cMandibleContact) {          // this is true the mandible are touching the object; cMandibleContact=350  
+    if(!MandibleFSR_Activated) {                     // if in contact with FSR for the first time
+       POTSavePos = POTCtrlPos;                      // Save the potentiometer position
+    }   
+    //adjusting mandibles to the correct Torque level:
+    if(MandibleFSRInput > TorqueLevel+100) {         // If to much torque:
+      MandPWM --;                                    // open mandible a little bit
+    }
+    else if (MandibleFSRInput < TorqueLevel-100) {   // If to little torque:
+      MandPWM ++;                                    // close mandible a little bit
+    }  
+    if(POTCtrlPos > (POTSavePos + 10)) {             // open mandibles
+      MandPWM = cMandClosedPWM - POTCtrlPos*5/2;     // 1495 - POTCtrlPos*5/2
+    }
+    MandibleFSR_Activated = true;
+  }  
+  else { // Open/close mandibles
+    MandibleFSR_Activated = false;
+    MandPWM = cMandClosedPWM - POTCtrlPos*5/2;       // 1495 - POTCtrlPos*5/2
+  }  
+}  
+								
+								
+								
+								
