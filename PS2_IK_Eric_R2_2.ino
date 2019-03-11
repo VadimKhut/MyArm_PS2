@@ -1549,7 +1549,7 @@ void loop() {
 
 	if(fArmOn == true) {
 		
-		MandibleControl();                               // Call the mandible control 		
+		MandibleControl();                               // Call the mandible control // Vad!		
 
 		if(fArmOn == true && fArmOn_prev == false){      // Turn Arm On
 
