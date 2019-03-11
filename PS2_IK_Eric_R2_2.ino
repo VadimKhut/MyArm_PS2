@@ -1548,6 +1548,8 @@ void loop() {
 	Control_PS2_Input();
 
 	if(fArmOn == true) {
+		
+		MandibleControl();                               // Call the mandible control 		
 
 		if(fArmOn == true && fArmOn_prev == false){      // Turn Arm On
 
@@ -1593,8 +1595,6 @@ void loop() {
 				fButtonPlay1 = false;
 		}
 
-
-		MandibleControl();                         // Call the mandible control 
 
 
 		// Only perform IK calculations if arm motion is needed.
