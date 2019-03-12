@@ -291,17 +291,18 @@ static short	PS2ErrorCnt;
 //
 #define GRIPPER_FSR_MAX_TORQUE  750  //Set the upper limit for how hard the grippers can pinch
 #define GRIPPER_FSR_MIN_TORQUE  370  //Minimum torque level
-#define GRIPPER_CONTACT       350   //readings lower than this means that the Grippers probably don't touch anything
+#define GRIPPER_CONTACT       	350   //readings lower than this means that the Grippers probably don't touch anything
 #define TORQUE_MULTIFACTOR     ((GRIPPER_FSR_MAX_TORQUE - GRIPPER_FSR_MIN_TORQUE) * 100 / 255) // (=176)
 
-#define GRIP_CLOSED_US	1495
-#define GRIPPER_OPEN_US	890
-#define GRIP_READY_US	1370
-#define GRIP_MID_US		1050
-#define GRIP_OFF_US		1450
-#define POT_READY_POS	50
-#define POT_MID_POS		50
-#define POT_OFF_POS		50
+// POT_POS = 2 ( 1450 - GRIP_US)/ 5
+#define GRIP_CLOSED_US		1495
+#define GRIPPER_OPEN_US		890
+#define GRIP_READY_US		1370
+#define GRIP_MID_US			1190
+#define GRIP_OFF_US			1450
+#define POT_READY_POS		50
+#define POT_MID_POS			122
+#define POT_OFF_POS			0
 
 // Audible feedback sounds
 // #define TONE_READY		1000	// Hz
