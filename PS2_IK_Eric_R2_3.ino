@@ -481,12 +481,12 @@ void TurnArmOn(void){
 	servo_park(PARK_READY);
 	delay(T_PARK_ON);
 
-	Serial.print(F("PARK_ms_st: "));
+	Serial.print(F(" PARK_ms_st = "));
 	Serial.println(millis());
 
 	delay_ms(T_PARK_ON);
 
-	Serial.print(F("PARK_ms_end: "));
+	Serial.print(F(" PARK_ms_end = "));
 	Serial.println(millis());
 
 	GetFeetbackAllServo();
@@ -510,7 +510,7 @@ void TM1637Display_Off(void){
 
 	#ifdef DEBUG
 	 // Turn off display
-	 Serial.println(F("Turning off display."));
+	 Serial.println(F("Display Off"));
 	#endif
 
 	for(int k = 0; k < 4; k++) 
@@ -790,7 +790,7 @@ void Control_PS2_Input(void){
 
 
 			#ifdef DEBUG
-				Serial.println(F("  Gripper Open"));
+				Serial.println(F("Gripper Open"));
 			#endif
 			}
 
@@ -815,7 +815,7 @@ void Control_PS2_Input(void){
 					Speed = constrain(Speed, SPEED_MIN, SPEED_MAX);
 
 				#ifdef DEBUG	
-					Serial.print(F("Speed: "));
+					Serial.print(F(" Speed = "));
 					Serial.println(Speed);
 				#endif
 
@@ -846,7 +846,7 @@ void Control_PS2_Input(void){
 							MSound(1, 50, 6000);
 
 						#ifdef DEBUG	
-							Serial.print(F("PlProgr: "));
+							Serial.print(F(" PlProgr = "));
 							Serial.println(playbackProgram);
  						#endif
 						}
@@ -868,7 +868,7 @@ void Control_PS2_Input(void){
 						MSound(1, 50, 6000);
 
 					#ifdef DEBUG	
-						Serial.print(F("PlProgr: "));
+						Serial.print(F(" PlProgr = "));
 						Serial.println(playbackProgram);
 					#endif
 
@@ -901,7 +901,7 @@ void Control_PS2_Input(void){
 					MSound(1, 50, 6000);
 
 				#ifdef DEBUG	
-					Serial.print(F("PlaySpeed: "));
+					Serial.print(F(" PlaySpeed = "));
 					Serial.println(PlaySpeed);
 				#endif
 
@@ -941,7 +941,7 @@ void Control_PS2_Input(void){
 					MSound(1, 50, 6000);
 
 				#ifdef DEBUG	
-					Serial.print(F("Delta_Time_R: "));
+					Serial.print(F(" Delta_Time_R = "));
 					Serial.println(Delta_Time_R);
 				#endif
 
@@ -1175,7 +1175,7 @@ void startRecord(void) {
 		}
 
 	#ifdef DEBUG
-		Serial.print(F("SD card output file is "));
+		Serial.print(F("SD card output file is: "));
 		Serial.println(name);
 	#endif
 
@@ -1195,7 +1195,7 @@ void startRecord(void) {
 		cTimePrev = millis();
 
 	 #ifdef DEBUG
-		Serial.print(F("RecStart: "));
+		Serial.print(F("RecStart = "));
 		Serial.println(cTimePrev);
 	 #endif
 
@@ -1908,7 +1908,7 @@ void GroupServoUpdate(unsigned int MoveTime, int BA_us, int shl_us, int shl1_us,
 
 #ifdef DEBUG
 	Serial.print(F("GroupServoUpdate!  "));
-	Serial.print(F("MoveTime:  "));
+	Serial.print(F("MoveTime = "));
 	Serial.println(MoveTime);
 	Serial.println();
 #endif
@@ -1930,8 +1930,7 @@ void ServoUpdateIK(int BA_us, int shl_us, int shl1_us, int elb_us, int wri_us) {
 	Wri_Servo.writeMicroseconds(wri_us);
 
 #ifdef DEBUG
-	Serial.print(F("ServoUpdateIK!  "));
-	Serial.println();
+	Serial.println(F("ServoUpdateIK!  "));
 #endif
 
 }
@@ -2188,7 +2187,7 @@ void Control_PS2_Input_S(void){
 					MSound(1, 50, 6000);
 
 				#ifdef DEBUG	
-					Serial.print(F("PlaySpeed: "));
+					Serial.print(F(" PlaySpeed = "));
 					Serial.println(PlaySpeed);
 				#endif
 
@@ -2231,7 +2230,7 @@ void delay_ms( unsigned long delayTime_ms) {
 	unsigned long carTime_ms;
 
 #ifdef DEBUG
-	Serial.print(F("Delay_ms: "));
+	Serial.print(F(" Delay_ms = "));
 	Serial.println(delayTime_ms);
 #endif
 
