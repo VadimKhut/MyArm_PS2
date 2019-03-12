@@ -54,6 +54,7 @@
 *       Left  Joystick L/R:  Wrist rotate (if installed)
 *       Left  Joystick U/D:  Gripper/Wrist Angle
 *       L1/L2 Buttons:       Gripper close/open
+*       L2+Pad L/R:          Gripper adjusting the torque
 *       /\ TRIANGLE  :       Gripper fully open
 *       Digital Pad U/D:     Speed increase/decrease
 *       Digital Pad L/R:     Playback Program increase/decrease
@@ -385,6 +386,10 @@ static void _sort(unsigned int array[], unsigned int len);
 double analogToAngle(byte servoNum, int inputAnalog);
 //void readLinearOffset(byte servoNum, double& interceptVal, double& slopeVal);
 void GripperControl(void);
+void WristRotControl(void);
+#ifdef CYL_IK   // 2D kinematics
+ void BaseControl(void);
+#endif
 
 
 
@@ -1539,15 +1544,9 @@ void loop() {
 
 
 	// Store desired position in tmp variables until confirmed by doArmIK() logic
-	#ifdef CYL_IK   // 2D kinematics
-
-	// not used
-
-	#else           // 3D kinematics
-
+#ifndef CYL_IK   // 3D kinematics
 	x_tmp = X;
-
-	#endif
+#endif
 
 	y_tmp = Y;
 	z_tmp = Z;
@@ -1598,8 +1597,7 @@ void loop() {
 		// Only perform IK calculations if arm motion is needed.
 		if (arm_moveIK) {
 
-			#ifdef CYL_IK   // 2D kinematics 
-
+		#ifdef CYL_IK   // 2D kinematics 
 			if (doArmIK(0, y_tmp, z_tmp, ga_tmp) == IK_SUCCESS) {
 
 				DegToUsServoIK();
@@ -1619,8 +1617,7 @@ void loop() {
 				MSound (2, 40, 2500, 40, 2500);
 			}
 
-			#else           // 3D kinematics
-
+		#else           // 3D kinematics
 			if (doArmIK(x_tmp, y_tmp, z_tmp, ga_tmp) == IK_SUCCESS) {
 
 				DegToUsServoIK();
@@ -1639,7 +1636,7 @@ void loop() {
 				//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
 				MSound (2, 40, 2500, 40, 2500);
 			}
-			#endif
+		#endif
 
 			arm_moveIK = false;
 		
@@ -1649,22 +1646,12 @@ void loop() {
 
 		if(arm_moveNoIK){                         // WRro_pos, BA_pos (2D)
 
-			if (WRro_pos != WRro_pos_s) {
+			WristRotControl();
 
-				WRro_pos_us = deg_to_us(WRro_pos);
-				Wro_Servo.writeMicroseconds(WRro_pos_us);
-				WRro_pos_s = WRro_pos; 
-			}
-			#ifdef CYL_IK   // 2D kinematics
-				if (BA_pos != BA_pos_s) {
-
-					BA_pos_us = deg_to_us(BA_pos);
-					Bas_Servo.writeMicroseconds(BA_pos_us);
-					BA_pos_s = BA_pos;
-				}
-			#endif
+		#ifdef CYL_IK   // 2D kinematics
+			BaseControl();
+		#endif
 		}
-
 
 		if (fCapture_pos) {
 
@@ -1712,16 +1699,12 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 	float bas_angle_r = atan2(x, y);
 
  #ifdef CYL_IK   // 2D kinematics
-
 	// We are in cylindrical mode, probably simply set y` to the y we passed in...
 	// y = y;
-
  #else           // 3D kinematics
-
 	// rdist is y coordinate for the arm
 	float rdist = sqrt((x * x) + (y * y));
 	y = rdist;
-
  #endif
 
 	// Grip offsets calculated based on grip angle
@@ -1955,13 +1938,10 @@ void ServoUpdateIK(int BA_us, int shl_us, int shl1_us, int elb_us, int wri_us) {
 
 
 
-
-
 // Move servos to parking position
 void servo_park(int park_type) {
 
 	int BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us; 
-
 
 	switch (park_type) {
 
@@ -1972,11 +1952,11 @@ void servo_park(int park_type) {
 			Serial.println("PARK_MIDPOINT:");
 	#endif
 			
-			#ifdef CYL_IK   // 2D kinematics
-			 BA_park_us = deg_to_us(BAS_MID);
-			#else           // 3D kinematics
-			 BA_park_us = deg_to_us(BAS_MID);
-			#endif
+		#ifdef CYL_IK   // 2D kinematics
+			BA_park_us = deg_to_us(BAS_MID);
+		#else           // 3D kinematics
+			BA_park_us = deg_to_us(BAS_MID);
+		#endif
 			shl_park_us = deg_to_us(SHL_MID);
 			shl1_park_us = deg_to_us(185-SHL_MID);
 			elb_park_us = deg_to_us(ELB_MID);
@@ -2003,9 +1983,7 @@ void servo_park(int park_type) {
 			
 
 	#else           // 3D kinematics
-
 			doArmIK(READY_X, READY_Y, READY_Z, READY_GRA); // 0; 170; 45; 0
-
 	#endif
 
 			WRro_pos = READY_WRO;      // 90 
@@ -2031,11 +2009,11 @@ void servo_park(int park_type) {
 			Serial.println("PARK_OFF:");
 	#endif
 
-			#ifdef CYL_IK   // 2D kinematics
-			 BA_park_us = deg_to_us(BAS_OFF);
-			#else           // 3D kinematics
-			 BA_park_us = deg_to_us(BAS_OFF);
-			#endif
+		#ifdef CYL_IK   // 2D kinematics
+			BA_park_us = deg_to_us(BAS_OFF);
+		#else           // 3D kinematics
+			BA_park_us = deg_to_us(BAS_OFF);
+		#endif
 			shl_park_us = deg_to_us(SHL_OFF);
 			shl1_park_us = deg_to_us(185-SHL_OFF);
 			elb_park_us = deg_to_us(ELB_OFF);
@@ -2434,6 +2412,7 @@ double analogToAngle(byte servoNum, int inputAnalog) {
 //}
 
 
+
 // GripperControl
 // Calculation of the value PWM with the control of compression for Gripper
 // input - POTCtrlPos, TorqueLevel, 
@@ -2488,3 +2467,29 @@ void GripperControl(void) {
 
 	POTCtrlPos_s = POTCtrlPos;
 }  
+
+
+
+void WristControl(void) {
+
+	if(WRro_pos != WRro_pos_s) {
+		WRro_pos_us = deg_to_us(WRro_pos);
+		Wro_Servo.writeMicroseconds(WRro_pos_us);
+		WRro_pos_s = WRro_pos; 
+	}
+}
+
+
+
+#ifdef CYL_IK   // 2D kinematics
+void WristRotControl(void) {
+
+	if(BA_pos != BA_pos_s) {
+		BA_pos_us = deg_to_us(BA_pos);
+		Bas_Servo.writeMicroseconds(BA_pos_us);
+		BA_pos_s = BA_pos;
+	}
+
+}
+#endif
+
