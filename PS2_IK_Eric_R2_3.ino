@@ -300,7 +300,7 @@ static short	PS2ErrorCnt;
 #define cGripOpenPWM	890
 #define GRIP_READY		1370
 #define GRIP_OFF		1450
-#define POT_START_POS	50
+#define POT_READY_POS	50
 
 // Audible feedback sounds
 // #define TONE_READY		1000	// Hz
@@ -334,16 +334,16 @@ int PlaySpeed = PLAY_SPEED_DEFAULT;
 int ServoMoveTime;
 unsigned int Delta_Time_R = DELTA_TIME_R_DEFAULT; 
 
-double mServoAngleOffset[6];
+float mServoAngleOffset[6];
 const byte SERVO_ANALOG_PIN[6] = {BAS_SERVO_ANALOG_PIN, SHL_SERVO_ANALOG_PIN, ELB_SERVO_ANALOG_PIN, 
 	                             WRI_SERVO_ANALOG_PIN, GRI_SERVO_ANALOG_PIN, WRO_SERVO_ANALOG_PIN};
 
 word	GripperFSRInput;
 word	Gr_pos_us = cGripClosedPWM;                     //PWM=1495
 word	old_Gr_pos_us;
-boolean	GripperFSR_Activated = false;
+bool	GripperFSR_Activated = false;
 byte	POTSavePos;
-byte	POTCtrlPos = POT_START_POS;                               // Controlled indirectly by the L1 and L2 button, inc/dec variable
+byte	POTCtrlPos = POT_READY_POS;                               // Controlled indirectly by the L1 and L2 button, inc/dec variable
 byte	POTCtrlPos_s;
 word	TorqueLevel;
 byte	TorqueIndex = 2;
@@ -1930,7 +1930,7 @@ void ServoUpdateIK(int BA_us, int shl_us, int shl1_us, int elb_us, int wri_us) {
 	Wri_Servo.writeMicroseconds(wri_us);
 
 #ifdef DEBUG
-	Serial.println(F("ServoUpdateIK!  "));
+	Serial.println(F("ServoUpdateIK!"));
 #endif
 
 }
@@ -1951,11 +1951,7 @@ void servo_park(int park_type) {
 			Serial.println("PARK_MIDPOINT:");
 	#endif
 			
-		#ifdef CYL_IK   // 2D kinematics
 			BA_park_us = deg_to_us(BAS_MID);
-		#else           // 3D kinematics
-			BA_park_us = deg_to_us(BAS_MID);
-		#endif
 			shl_park_us = deg_to_us(SHL_MID);
 			shl1_park_us = deg_to_us(185-SHL_MID);
 			elb_park_us = deg_to_us(ELB_MID);
@@ -1963,30 +1959,29 @@ void servo_park(int park_type) {
 			WRro_park_us = deg_to_us(WRO_MID);
 			Gr_park_us = cGripMidPWM;
 
-			GroupServoUpdate(T_PARK_MID,BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us);
+			GroupServoUpdate(T_PARK_MID, BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us);
 
 			break;
 
 		// Ready-To-Run position
 		case PARK_READY:
 			
-	#ifdef CYL_IK   // 2D kinematics
-
 		#ifdef DEBUG
 			Serial.println("PARK_READY:");
 		#endif
 			
-			doArmIK(0.0, READY_Y, READY_Z, READY_GRA); // 0; 170; 45; 0
-
-			BA_pos = READY_BA; // 90
-			
-
+	#ifdef CYL_IK   // 2D kinematics
+			doArmIK(0.0, READY_Y, READY_Z, READY_GRA);     // 0; 170; 45; 0
+			BA_pos = READY_BA;                             // 90
+			BA_pos_us = deg_to_us(BA_pos);
 	#else           // 3D kinematics
 			doArmIK(READY_X, READY_Y, READY_Z, READY_GRA); // 0; 170; 45; 0
 	#endif
-
-			WRro_pos = READY_WRO;      // 90 
-			Gr_pos_us = GRIP_READY;    // POT_START_POS=50, cGripReadyPWM=1370
+			WRro_pos = READY_WRO;                          // 90 
+			WRro_pos_us = deg_to_us(WRro_pos);
+			
+			POTCtrlPos = POT_READY_POS;
+			Gr_pos_us = GRIP_READY;                        // POT_READY_POS=50, cGripReadyPWM=1370
 
 			DegToUsServoIK();
 			
@@ -1995,10 +1990,9 @@ void servo_park(int park_type) {
 			Y = READY_Y;
 			Z = READY_Z;
 			GA_pos = READY_GRA;
-			//BA_pos_s = BA_pos; // Vad!
-			//WRro_pos_s = WRro_pos;
-			//Gr_pos_s = Gr_pos;
-
+			BA_pos_s = BA_pos; // Vad!
+			WRro_pos_s = WRro_pos;
+			Gr_pos_s = Gr_pos;
 			break;
 		
 		// All servos at PARK_OFF position
@@ -2008,9 +2002,6 @@ void servo_park(int park_type) {
 			Serial.println("PARK_OFF:");
 	#endif
 
-		#ifdef CYL_IK   // 2D kinematics
-			BA_park_us = deg_to_us(BAS_OFF);
-		#else           // 3D kinematics
 			BA_park_us = deg_to_us(BAS_OFF);
 		#endif
 			shl_park_us = deg_to_us(SHL_OFF);
@@ -2018,7 +2009,8 @@ void servo_park(int park_type) {
 			elb_park_us = deg_to_us(ELB_OFF);
 			wri_park_us = deg_to_us(WRI_OFF);
 			WRro_park_us = deg_to_us(WRO_OFF);
-			Gr_park_us = GRIP_OFF;                  //GRIP_OFF=1450
+			POTCtrlPos = POT_READY_POS; 
+			Gr_park_us = GRIP_OFF;                         // POT_READY_POS=50, GRIP_OFF=1450
 
 			GroupServoUpdate(T_PARK_OFF, BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us);
 
@@ -2032,7 +2024,6 @@ void servo_park(int park_type) {
 // The Arduino Servo library .write() function accepts 'int' degrees, meaning
 // maximum Servo positioning resolution is whole degrees. Servos are capable 
 // of roughly 2x that resolution via direct microsecond control.
-//
 // This function converts 'float' (i.e. decimal) degrees to corresponding 
 // Servo microseconds to take advantage of this extra resolution.
 int deg_to_us(float value) {
