@@ -289,18 +289,19 @@ static short	PS2ErrorCnt;
 //FSR connected to analog input: A2
 //Use a 10k resistor between GND and ADIN. Connect FSR between ADIN and VCC(+5v)
 //
-#define cGripperFSRmaxTorque  750  //Set the upper limit for how hard the grippers can pinch
-#define cGripperFSRminTorque  370  //Minimum torque level
-#define cGripperContact       350   //readings lower than this means that the Grippers probably don't touch anything
-#define cTorqueMultiFactor     ((cGripperFSRmaxTorque - cGripperFSRminTorque) * 100 / 255) // (=176)
+#define GRIPPER_FSR_MAX_TORQUE  750  //Set the upper limit for how hard the grippers can pinch
+#define GRIPPER_FSR_MIN_TORQUE  370  //Minimum torque level
+#define GRIPPER_CONTACT       350   //readings lower than this means that the Grippers probably don't touch anything
+#define TORQUE_MULTIFACTOR     ((GRIPPER_FSR_MAX_TORQUE - GRIPPER_FSR_MIN_TORQUE) * 100 / 255) // (=176)
 
-// Servo PWM MIN/MAX values
-#define cGripClosedPWM	1495
-#define cGripMidPWM		1050
-#define cGripOpenPWM	890
-#define GRIP_READY		1370
-#define GRIP_OFF		1450
+#define GRIP_CLOSED_US	1495
+#define GRIPPER_OPEN_US	890
+#define GRIP_READY_US	1370
+#define GRIP_MID_US		1050
+#define GRIP_OFF_US		1450
 #define POT_READY_POS	50
+#define POT_MID_POS		50
+#define POT_OFF_POS		50
 
 // Audible feedback sounds
 // #define TONE_READY		1000	// Hz
@@ -339,7 +340,7 @@ const byte SERVO_ANALOG_PIN[6] = {BAS_SERVO_ANALOG_PIN, SHL_SERVO_ANALOG_PIN, EL
 	                             WRI_SERVO_ANALOG_PIN, GRI_SERVO_ANALOG_PIN, WRO_SERVO_ANALOG_PIN};
 
 word	GripperFSRInput;
-word	Gr_pos_us = cGripClosedPWM;                     //PWM=1495
+word	Gr_pos_us = GRIP_CLOSED_US;                     //PWM=1495
 word	old_Gr_pos_us;
 bool	GripperFSR_Activated = false;
 byte	POTSavePos;
@@ -749,7 +750,7 @@ void Control_PS2_Input(void){
 							MSound(1, 50, 6000);
 						}
 
-						TorqueLevel = (cGripperFSRminTorque + (TorqueSelect[TorqueIndex] * cTorqueMultiFactor) / 100);
+						TorqueLevel = (GRIPPER_FSR_MIN_TORQUE + (TorqueSelect[TorqueIndex] * TORQUE_MULTIFACTOR) / 100);
 					}
 				}
 
@@ -767,7 +768,7 @@ void Control_PS2_Input(void){
 							MSound(1, 50, 6000);
 						}
 
-						TorqueLevel = (cGripperFSRminTorque + (TorqueSelect[TorqueIndex] * cTorqueMultiFactor) / 100);
+						TorqueLevel = (GRIPPER_FSR_MIN_TORQUE + (TorqueSelect[TorqueIndex] * TORQUE_MULTIFACTOR) / 100);
 					}
 				}  
 			}    
@@ -1957,7 +1958,9 @@ void servo_park(int park_type) {
 			elb_park_us = deg_to_us(ELB_MID);
 			wri_park_us = deg_to_us(WRI_MID);
 			WRro_park_us = deg_to_us(WRO_MID);
-			Gr_park_us = cGripMidPWM;
+			POTCtrlPos = POT_MID_POS; 
+			Gr_park_us = GRIP_MID_US;                         // POT_READY_POS=50, GRIP_OFF_US=1450
+
 
 			GroupServoUpdate(T_PARK_MID, BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us);
 
@@ -1981,7 +1984,7 @@ void servo_park(int park_type) {
 			WRro_pos_us = deg_to_us(WRro_pos);
 			
 			POTCtrlPos = POT_READY_POS;
-			Gr_pos_us = GRIP_READY;                        // POT_READY_POS=50, cGripReadyPWM=1370
+			Gr_pos_us = GRIP_READY_US;                     // POT_READY_POS=50, GRIP_READY_US=1370
 
 			DegToUsServoIK();
 			
@@ -2009,8 +2012,8 @@ void servo_park(int park_type) {
 			elb_park_us = deg_to_us(ELB_OFF);
 			wri_park_us = deg_to_us(WRI_OFF);
 			WRro_park_us = deg_to_us(WRO_OFF);
-			POTCtrlPos = POT_READY_POS; 
-			Gr_park_us = GRIP_OFF;                         // POT_READY_POS=50, GRIP_OFF=1450
+			POTCtrlPos = POT_OFF_POS; 
+			Gr_park_us = GRIP_OFF_US;                         // POT_READY_POS=50, GRIP_OFF=1450
 
 			GroupServoUpdate(T_PARK_OFF, BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us);
 
@@ -2411,7 +2414,7 @@ void GripperControl(void) {
 
 	GripperFSRInput = analogRead(FSR_ANALOG_PIN);                   // Read FSR
 
-	if(GripperFSRInput > cGripperContact) {                         // this is true the Gripper are touching the object; cGripperContact=350  
+	if(GripperFSRInput > GRIPPER_CONTACT) {                         // this is true the Gripper are touching the object; GRIPPER_CONTACT=350  
 		if(!GripperFSR_Activated) {                                 // if in contact with FSR for the first time
 			POTSavePos = POTCtrlPos;                                // Save the potentiometer position
 		}   
@@ -2423,16 +2426,16 @@ void GripperControl(void) {
 			Gr_pos_us ++;                                           // close Gripper a little bit
 		}  
 		if(POTCtrlPos > (POTSavePos + 10)) {                        // open Grippers
-			Gr_pos_us = cGripClosedPWM - POTCtrlPos*5/2;            // 1495 - POTCtrlPos*5/2
+			Gr_pos_us = GRIP_CLOSED_US - POTCtrlPos*5/2;            // 1495 - POTCtrlPos*5/2
 		}
 		GripperFSR_Activated = true;
 	}  
 	else { // Open/close Grippers
 		GripperFSR_Activated = false;
-		Gr_pos_us = cGripClosedPWM - POTCtrlPos*5/2;                // 1495 - POTCtrlPos*5/2
+		Gr_pos_us = GRIP_CLOSED_US - POTCtrlPos*5/2;                // 1495 - POTCtrlPos*5/2
 
 		//Checks the mechanical limits of the Gripper servo
-		Gr_pos_us = min(max(Gr_pos_us, cGripOpenPWM), cGripClosedPWM); 
+		Gr_pos_us = min(max(Gr_pos_us, GRIPPER_OPEN_US), GRIP_CLOSED_US); 
 	}
 
 	Gri_Servo.writeMicroseconds(Gr_pos_us);
@@ -2479,7 +2482,6 @@ void WristRotControl(void) {
 		Bas_Servo.writeMicroseconds(BA_pos_us);
 		BA_pos_s = BA_pos;
 	}
-
 }
 #endif
 
