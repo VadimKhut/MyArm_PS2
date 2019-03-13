@@ -211,7 +211,7 @@ volatile uint8_t pin_mask;
 // Practical navigation limit.
 // Enforced on controller input, and used for CLV calculation 
 // for base rotation in 2D mode. 
-#define Y_MIN 100.0	// mm
+#define Y_MIN 100.0				// (mm)
 
 // PS2 controller characteristics
 #define JS_MIDPOINT		128		// Numeric value for joystick midpoint
@@ -234,24 +234,24 @@ volatile uint8_t pin_mask;
 // NOTE: Have the arm near this position before turning on the 
 // Servo power to prevent whiplash
 #ifdef CYL_IK   // 2D kinematics
- #define READY_BA	BAS_MID
+ #define READY_BA	BAS_MID		// deg
 #else           // 3D kinematics
-#define READY_X		90.0
+#define READY_X		0.0			// (mm)
 #endif
 
-#define READY_Y		133.76
-#define READY_Z		101.0
-#define READY_GRA	-47.33			// Wrist 
-#define READY_GR	GRI_MID
-#define READY_WRO	WRO_MID
+#define READY_Y		133.76		// (mm)
+#define READY_Z		101.0		// (mm)
+#define READY_GRA	-47.33		// (deg) Wrist angle
+#define READY_GR	GRI_MID		// (deg)
+#define READY_WRO	WRO_MID		// (deg)
 
 
 // Global variables for arm position, and initial settings
-float BA_pos = READY_BA;            // Base angle. Servo degrees - 0 is fully CCW
-
 #ifdef CYL_IK   // 2D kinematics
+ float BA_pos2D = READY_BA;          // Base angle. Servo (degrees) - 0 is fully CCW
  float BA_pos_s;                     // Base position save (2D)
 #else           // 3D kinematics
+ float BA_pos3D;                    // distance (mm)
  float X = READY_X;                 // Left/right distance (mm) from base centerline - 0 is straight
  float x_tmp;
 #endif
@@ -315,8 +315,8 @@ int old_BA_pos_us, old_shl_pos_us, old_elb_pos_us, old_wri_pos_us, old_WRro_pos_
 bool fServosAttached = false;      // remember we are not attached. Could simply ask one of our servos...
 bool fArmOn = false;
 bool fArmOn_prev = false;
-bool arm_moveIK = false;           // input occurred that can move the arm IK (BA_pos(3D), shl_pos, elb_pos, wri_pos)
-bool arm_moveNoIK = false;         // input occurred that can move the arm (BA_pos(2D), WRro_pos, Gr_pos)
+bool arm_moveIK = false;           // input occurred that can move the arm IK (BA_pos3D, shl_pos, elb_pos, wri_pos)
+bool arm_moveNoIK = false;         // input occurred that can move the arm (BA_pos2D, WRro_pos, Gr_pos)
 bool fButtonPlay1 = false;
 bool fButtonPlay2 = false;
 bool fButtonRec = false;
@@ -602,23 +602,23 @@ void Control_PS2_Input(void){
 
 				// Multiplying by the ratio (Y_MIN/Y) is to ensure constant linear velocity
 				// of the gripper as its distance from the base increases
-				BA_pos += ((float)rx_trans / JS_SCALE * Speed * (Y_MIN/Y));   // Base  Position  (side to side)   
-				BA_pos = constrain(BA_pos, BAS_MIN, BAS_MAX);
+				BA_pos2D += ((float)rx_trans / JS_SCALE * Speed * (Y_MIN/Y));   // Base  Position  (side to side)   
+				BA_pos2D = constrain(BA_pos2D, BAS_MIN, BAS_MAX);
 
-				if (BA_pos != BA_pos_s) {
+				if (BA_pos2D != BA_pos_s) {
 
 					arm_moveNoIK = true;
 
 				#ifdef DEBUG
 					Serial.print(F(" Base Pos 2D = "));
-					Serial.print(BA_pos);
+					Serial.print(BA_pos2D);
 					Serial.print(F(", BA_pos_us = "));
 					Serial.println(BA_pos_us);
 				#endif 
 				}
 
 				// Provide audible feedback of reaching limit
-				if (BA_pos == BAS_MIN || BA_pos == BAS_MAX) {
+				if (BA_pos2D == BAS_MIN || BA_pos2D == BAS_MAX) {
 
 					// Provide audible feedback of reaching limit
 					//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
@@ -1655,9 +1655,9 @@ void loop() {
 		
 		} // arm_moveIK 
 
-		GripperControl();                         // Call the Gripper control 
+		GripperControl();                         // Gr_pos_us
 
-		if(arm_moveNoIK){                         // WRro_pos, BA_pos (2D)
+		if(arm_moveNoIK){                         // WRro_pos, BA_pos2D
 
 			WristRotControl();
 
@@ -1702,7 +1702,7 @@ void loop() {
 // Arm positioning routine utilizing Inverse Kinematics.
 // Z is height, Y is distance from base center out, X is side to side. Y, Z can only be positive.
 // Input dimensions are for the gripper, just short of its tip, where it grabs things.
-// return -  BA_pos(3D); shl_pos; elb_pos; wri_pos (degrees)
+// return -  BA_pos3D; shl_pos; elb_pos; wri_pos (in degrees)
 // If resulting arm position is physically unreachable, return error code.
 
 int doArmIK(float x, float y, float z, float grip_angle_d) {
@@ -1766,7 +1766,7 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 	// Calculate Servo angles (degrees)
 	// Calc relative to Servo midpoint to allow compensation for Servo alignment
 #ifndef CYL_IK   // 3D kinematics
-	BA_pos  = BAS_MID + degrees(bas_angle_r);
+	BA_pos3D  = BAS_MID + degrees(bas_angle_r);
 #endif
 	shl_pos = SHL_MID + (shl_angle_d - 90.0);
 	elb_pos = ELB_MID - (elb_angle_d - 90.0);
@@ -1774,7 +1774,7 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 
 	// If any Servo ranges are exceeded, return an error
 #ifndef CYL_IK   // 3D kinematics
-	if (BA_pos < BAS_MIN || BA_pos > BAS_MAX )
+	if (BA_pos3D < BAS_MIN || BA_pos3D > BAS_MAX )
 		return IK_ERROR;
 #endif
 
@@ -1796,7 +1796,7 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 
  #ifndef CYL_IK   // 3D kinematics
 	Serial.print(F("  Base Pos 3D: "));
-	Serial.print(BA_pos);
+	Serial.print(BA_pos3D);
  #endif
 	Serial.print(F("  Shld Pos: "));
 	Serial.print(shl_pos);
@@ -1825,12 +1825,12 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 
 // Calculate Servo position from degrees to us
 // if mode == Record and (fCapture_pos == true) save all servo position to SD 
-// input - BA_pos; shl_pos; elb_pos; wri_pos; WRro_pos; Gr_pos
+// input - BA_pos3D; shl_pos; elb_pos; wri_pos; WRro_pos; Gr_pos
 // return - BA_pos_us; shl_pos_us; shl1_pos_us; elb_pos_us; wri_pos_us; WRro_pos_us; Gr_pos_us 
 void DegToUsServoIK(void) {
 
 #ifndef CYL_IK   // 3D kinematics
-	BA_pos_us = deg_to_us(BA_pos);
+	BA_pos_us = deg_to_us(BA_pos3D);
 #endif
 	shl_pos_us = deg_to_us(shl_pos);
 	shl1_pos_us = deg_to_us(185-shl_pos);
@@ -1843,7 +1843,7 @@ void DegToUsServoIK(void) {
 	Serial.println(F("Fn_DegToUsServoIK"));
 #ifndef CYL_IK   // 3D kinematics
 	Serial.print(F(" BA_pos 3D = "));
-	Serial.print(BA_pos);
+	Serial.print(BA_pos3D);
 	Serial.print(F(","));
 #endif
 	Serial.print(F(" shl_pos = "));
@@ -1998,8 +1998,8 @@ void servo_park(int park_type) {
 			
 	#ifdef CYL_IK   // 2D kinematics
 			doArmIK(0.0, READY_Y, READY_Z, READY_GRA);        // 0; 170; 45; 0
-			BA_pos = READY_BA;                                // 90
-			BA_pos_us = deg_to_us(BA_pos);
+			BA_pos2D = READY_BA;                                // 90
+			BA_pos_us = deg_to_us(BA_pos2D);
 	#else           // 3D kinematics
 			doArmIK(READY_X, READY_Y, READY_Z, READY_GRA);    // 0; 170; 45; 0
 	#endif
@@ -2017,7 +2017,9 @@ void servo_park(int park_type) {
 			Z = READY_Z;
 			GA_pos = READY_GRA;
 
+	#ifdef CYL_IK   // 2D kinematics
 			BA_pos_s = BA_pos;
+	#endif
 			WRro_pos_s = WRro_pos;
 			POTCtrlPos_s = POTCtrlPos;
 			break;
