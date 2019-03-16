@@ -113,13 +113,13 @@ int dummy;                      // Defining this dummy variable to work around a
 #define WRO_SERVO_PIN	11      // Wrist rotate Servo HS-485HB
 #define GRI_SERVO_PIN	12      // Gripper Servo
 
-#define BAS_SERVO_ANALOG_PIN	0
-#define SHL_SERVO_ANALOG_PIN	1
-#define ELB_SERVO_ANALOG_PIN	2
-#define WRI_SERVO_ANALOG_PIN	3
-#define WRO_SERVO_ANALOG_PIN	4
-#define GRI_SERVO_ANALOG_PIN	5
-#define FSR_ANALOG_PIN			6
+#define BAS_SERVO_ANG_PIN	0
+#define SHL_SERVO_ANG_PIN	1
+#define ELB_SERVO_ANG_PIN	2
+#define WRI_SERVO_ANG_PIN	3
+#define WRO_SERVO_ANG_PIN	4
+#define GRI_SERVO_ANG_PIN	5
+#define FSR_ANG_PIN			6
 
 #define SERVO_ANALOG_MAX    440
 #define SERVO_ANALOG_MIN    105
@@ -291,8 +291,8 @@ float Speed = SPEED_DEFAULT;
 float hum_sq = HUMERUS*HUMERUS;
 float uln_sq = ULNA*ULNA;
 
-int Bas_fb, Shl_fb, Elb_fb, Wri_fb, Wro_fb, Gri_fb;
-float Bas_fback, Shl_fback, Elb_fback, Wri_fback, Wro_fback, Gri_fback;
+int Bas_fb, Shl_fb, Shl1_fb, Elb_fb, Wri_fb, Wro_fb, Gri_fb;
+float Bas_AngFb, Shl1_AngFb, Elb_AngFb, Wri_AngFb, Wro_AngFb, Gri_AngFb;
 int ly_trans, lx_trans, ry_trans, rx_trans;
 
 static short	PS2ErrorCnt;
@@ -355,8 +355,8 @@ int ServoMoveTime;
 unsigned int Delta_Time_R = DELTA_TIME_R_DEFAULT; 
 
 float mServoAngleOffset[6];
-const byte SERVO_ANALOG_PIN[6] = {BAS_SERVO_ANALOG_PIN, SHL_SERVO_ANALOG_PIN, ELB_SERVO_ANALOG_PIN, 
-	                             WRI_SERVO_ANALOG_PIN, GRI_SERVO_ANALOG_PIN, WRO_SERVO_ANALOG_PIN};
+const byte SERVO_ANG_PIN[6] = {BAS_SERVO_ANG_PIN, SHL_SERVO_ANG_PIN, ELB_SERVO_ANG_PIN, 
+	                             WRI_SERVO_ANG_PIN, GRI_SERVO_ANG_PIN, WRO_SERVO_ANG_PIN};
 
 word	GripperFSRInput;
 word	Gr_pos_us = GRIP_CLOSED_US;                     // PWM=1495
@@ -466,6 +466,10 @@ int maxProgram = 0;
  
 void TurnArmOff(void){
     
+  #ifdef DEBUG
+	Serial.println(F("Arm OFF!"));
+  #endif
+
 	servo_park(PARK_OFF);
 
 #ifdef DEBUG
@@ -473,7 +477,7 @@ void TurnArmOff(void){
 	Serial.println(millis());
 #endif
 
-	delay_ms(T_PARK_OFF);
+	delay_ms(T_PARK_OFF + 1000);
 
 #ifdef DEBUG
 	Serial.print(F(" PARK_ms_end = "));
@@ -489,10 +493,6 @@ void TurnArmOff(void){
 		ResetAllFlags();
 	}
 
-  #ifdef DEBUG
-	Serial.println(F("Arm OFF!"));
-  #endif
-
 	//// Sound tone to indicate it's safe to turn on Servo power
 	//tone(SPK_PIN, TONE_READY, TONE_DURATION);
 	//delay(TONE_DURATION * 2);
@@ -505,31 +505,116 @@ void TurnArmOff(void){
 
 void TurnArmOn(void){
 
-	AttachServos();
+	int Bas_fbk, Shl_fbk, Shl1_fbk, Elb_fbk, Wri_fbk, Wro_fbk, Gri_fbk;
 
-	delay(50);
+  #ifdef DEBUG
+	Serial.println(F("Arm ON!"));
+  #endif
 
-	Bas_fback = readFbServoAngle(0);
-	Shl_fback = readFbServoAngle(1);
-	Elb_fback = readFbServoAngle(2);
-	Wri_fback = readFbServoAngle(3);
-	Wro_fback = readFbServoAngle(4);
-	Gri_fback = readFbServoAngle(5);
+	Bas_AngFb = readFbServoAngle(BAS_SERVO_ANG_PIN);
+	Shl1_AngFb = readFbServoAngle(SHL_SERVO_ANG_PIN);
+	Elb_AngFb = readFbServoAngle(ELB_SERVO_ANG_PIN);
+	Wri_AngFb = readFbServoAngle(WRI_SERVO_ANG_PIN);
+	Wro_AngFb = readFbServoAngle(WRO_SERVO_ANG_PIN);
+	Gri_AngFb = readFbServoAngle(GRI_SERVO_ANG_PIN);
+
+	Bas_fbk = int(Bas_AngFb);
+	Shl1_fbk = int(Shl1_AngFb);
+	Shl_fbk = int(185-Shl1_fbk);
+	Elb_fbk = int(Elb_AngFb);
+	Wri_fbk = int(Wri_AngFb);
+	Wro_fbk = int(Wro_AngFb);
+	Gri_fbk = int(Gri_AngFb);
+
+
+	Serial.print("  Bas_AngFb: ");
+	Serial.print(Bas_AngFb);
+	Serial.print("  Bas_Fbk: ");
+	Serial.println(Bas_fbk);
+
+	Serial.print("  Shl_AngFb: ");
+	Serial.print(Shl_fbk);
+
+	Serial.print("  Shl1_AngFb: ");
+	Serial.print(Shl1_AngFb);
+	Serial.print("  Shl1_Fbk: ");
+	Serial.println(Shl1_fbk);
+
+	Serial.print("  Elb_AngFb: ");
+	Serial.print(Elb_AngFb);
+	Serial.print("  Elb_Fbk: ");
+	Serial.print(Elb_fbk);
+
+	Serial.print("  Wri_AngFb: ");
+	Serial.print(Wri_AngFb);
+	Serial.print("  Wri_Fbk: ");
+	Serial.println(Wri_fbk);
+
+	Serial.print("  WrRO_AngFb: ");
+	Serial.print(Wro_AngFb);
+	Serial.print("  WrRO_Fbk: ");
+	Serial.print(Wro_fbk);
+
+	Serial.print("  Gri_AngFb: ");
+	Serial.println(Gri_AngFb);
+	Serial.print("  Gri_Fbk: ");
+	Serial.println(Gri_fbk);
+
 
 	// Position the servos
-	Bas_Servo.write(int(Bas_fback));
-	Shl_Servo.write(int(Shl_fback));
-	Shl_Servo1.write(int(185-Shl_fback));
-	Elb_Servo.write(int(Elb_fback));
-	Wri_Servo.write(int(Wri_fback));
-	Wro_Servo.write(int(Wro_fback));
-	Gri_Servo.write(int(Gri_fback));
+	Bas_Servo.write(int(Bas_AngFb));
+	Shl_Servo.write(Shl_fbk);
+	Shl_Servo1.write(Shl1_fbk);
+	Elb_Servo.write(int(Elb_AngFb));
+	Wri_Servo.write(int(Wri_AngFb));
+	Wro_Servo.write(int(Wro_AngFb));
+	Gri_Servo.write(int(Gri_AngFb));
 
-			Serial.print("  WrRO Fb: ");
-			Serial.print(Wro_fb);
-			Serial.print("  ");
-			Serial.println(Wro_fback);
+	Serial.println("Servo.write");
 
+	delay(100);
+
+	AttachServos();
+
+	GetFeetbackAllServo();
+
+	delay_ms(5000);
+
+
+	//Serial.print("  Bas_AngFb: ");
+	//Serial.print(Bas_AngFb);
+	//Serial.print("  Bas_Fb: ");
+	//Serial.println(Bas_fb);
+
+	//Serial.print("  Shl_AngFb: ");
+	//Serial.print(Shl_fbk);
+	//Serial.print("  Shl_Fb: ");
+	//Serial.print(Shl_fb);
+
+	//Serial.print("  Shl1_AngFb: ");
+	//Serial.print(Shl1_AngFb);
+	//Serial.print("  Shl1_Fb: ");
+	//Serial.println(Shl1_fb);
+
+	//Serial.print("  Elb_AngFb: ");
+	//Serial.print(Elb_AngFb);
+	//Serial.print("  Elb_Fb: ");
+	//Serial.print(Elb_fb);
+
+	//Serial.print("  Wri_AngFb: ");
+	//Serial.print(Wri_AngFb);
+	//Serial.print("  Wri_Fb: ");
+	//Serial.println(Wri_fb);
+
+	//Serial.print("  WrRO_AngFb: ");
+	//Serial.print(Wro_AngFb);
+	//Serial.print("  WrRO_Fb: ");
+	//Serial.print(Wro_fb);
+
+	//Serial.print("  Gri_AngFb: ");
+	//Serial.println(Gri_AngFb);
+	//Serial.print("  Gri_Fb: ");
+	//Serial.println(Gri_fb);
 
 	
 	// NOTE: Ensure arm is close to the desired park position before turning on Servo power!
@@ -540,7 +625,7 @@ void TurnArmOn(void){
 	Serial.println(millis());
 #endif
 
-	delay_ms(T_PARK_ON);
+	delay_ms(T_PARK_ON + 1000);
 
 #ifdef DEBUG
 	Serial.print(F(" PARK_ms_end = "));
@@ -548,10 +633,6 @@ void TurnArmOn(void){
 #endif
 
 	GetFeetbackAllServo();
-
-  #ifdef DEBUG
-	Serial.println(F("Arm ON!"));
-  #endif
 
 	//// Sound tone to indicate it's safe to turn on Servo power
 	//tone(SPK_PIN, TONE_READY, TONE_DURATION);
@@ -1247,7 +1328,7 @@ void startRecord(void) {
 
 		delay_ms(1000);
 		servo_park(PARK_OFF);
-		delay_ms(T_PARK_OFF);
+		delay_ms(T_PARK_OFF + 1000);
 
 		// myFile.println("time,command,value");    
 		// Need to first write the initial (current) position
@@ -1519,7 +1600,7 @@ void startPlayback(int in_playbackProgram) {
 	
 	delay_ms(1000);
 	servo_park(PARK_READY);
-	delay_ms(T_PARK_ON);
+	delay_ms(T_PARK_ON + 1000);
 
 	ResetAllFlags();
 }
@@ -2360,6 +2441,7 @@ void GetFeetbackAllServo(void) {
 	// feetback check
 	Bas_fb = Bas_Servo.read();
 	Shl_fb = Shl_Servo.read();
+	Shl1_fb = Shl_Servo1.read();
 	Elb_fb = Elb_Servo.read();
 	Wri_fb = Wri_Servo.read();
 	Wro_fb = Wro_Servo.read();
@@ -2370,6 +2452,8 @@ void GetFeetbackAllServo(void) {
 	Serial.print(Bas_fb);
 	Serial.print("  Shld Fb: ");
 	Serial.print(Shl_fb);
+	Serial.print("  Shld1 Fb: ");
+	Serial.print(Shl1_fb);
 	Serial.print("  Elbw Fb: ");
 	Serial.print(Elb_fb);
 	Serial.print("  Wri Fb: ");
@@ -2414,9 +2498,9 @@ float readFbServoAngle(byte servoNum, boolean withOffset) {
 	AnalogVal = getAnalogPinValue(servoNum);
 
 #ifdef DEBUG
-	Serial.print("  Servo N = ");
+	Serial.print("  Ser_N = ");
 	Serial.print(servoNum);
-	Serial.print(", AnalogVal = ");
+	Serial.print(", AnVal = ");
 	Serial.println(AnalogVal);
 #endif
 
@@ -2438,7 +2522,7 @@ float readFbServoAngle(byte servoNum, boolean withOffset) {
 
 unsigned int getServoAnalogData(byte servoNum) {
 
-	return getAnalogPinValue(SERVO_ANALOG_PIN[servoNum]);
+	return getAnalogPinValue(SERVO_ANG_PIN[servoNum]);
 }
 
 
@@ -2513,7 +2597,8 @@ double analogToAngle(byte servoNum, int inputAnalog) {
 // return - Gr_pos_us
 void GripperControl(void) {
 
-	GripperFSRInput = analogRead(FSR_ANALOG_PIN);                   // Read FSR
+	//GripperFSRInput = analogRead(FSR_ANG_PIN);                   // Read FSR
+	GripperFSRInput = 0; //Vad!
 
 	if(GripperFSRInput > GRIPPER_CONTACT) {                         // this is true the Gripper are touching the object; GRIPPER_CONTACT=350  
 		if(!GripperFSR_Activated) {                                 // if in contact with FSR for the first time
