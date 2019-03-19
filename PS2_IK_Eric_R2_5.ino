@@ -249,7 +249,7 @@ volatile uint8_t pin_mask;
 #else           // 3D kinematics
  #define OFF_X		0.0			// (mm)
 #endif
-#define OFF_Y		100.00		// (mm)
+#define OFF_Y		105.00		// (mm)
 #define OFF_Z		113.00		// (mm)
 #define OFF_GRA		17.18		// (deg) Wrist angle
 #define OFF_WRO		WRO_MID		// (deg)
@@ -292,7 +292,7 @@ float hum_sq = HUMERUS*HUMERUS;
 float uln_sq = ULNA*ULNA;
 
 int Bas_fb, Shl_fb, Shl1_fb, Elb_fb, Wri_fb, Wro_fb, Gri_fb;
-float Bas_AngFb, Shl1_AngFb, Elb_AngFb, Wri_AngFb, Wro_AngFb, Gri_AngFb;
+float Bas_AngFb, Shl_AngFb, Elb_AngFb, Wri_AngFb, Wro_AngFb, Gri_AngFb;
 int ly_trans, lx_trans, ry_trans, rx_trans;
 
 static short	PS2ErrorCnt;
@@ -505,65 +505,48 @@ void TurnArmOff(void){
 
 void TurnArmOn(void){
 
-	int Bas_fbk, Shl_fbk, Shl1_fbk, Elb_fbk, Wri_fbk, Wro_fbk, Gri_fbk;
+	int Shl1_fbk;
 
   #ifdef DEBUG
 	Serial.println(F("Arm ON!"));
   #endif
 
 	Bas_AngFb = readFbServoAngle(BAS_SERVO_ANG_PIN);
-	Shl1_AngFb = readFbServoAngle(SHL_SERVO_ANG_PIN);
+	Shl_AngFb = readFbServoAngle(SHL_SERVO_ANG_PIN);
 	Elb_AngFb = readFbServoAngle(ELB_SERVO_ANG_PIN);
 	Wri_AngFb = readFbServoAngle(WRI_SERVO_ANG_PIN);
 	Wro_AngFb = readFbServoAngle(WRO_SERVO_ANG_PIN);
 	Gri_AngFb = readFbServoAngle(GRI_SERVO_ANG_PIN);
 
-	Bas_fbk = int(Bas_AngFb);
-	Shl1_fbk = int(Shl1_AngFb);
-	Shl_fbk = int(185-Shl1_fbk);
-	Elb_fbk = int(Elb_AngFb);
-	Wri_fbk = int(Wri_AngFb);
-	Wro_fbk = int(Wro_AngFb);
-	Gri_fbk = int(Gri_AngFb);
+	Shl1_fbk = int(185-Shl_AngFb);
 
 
 	Serial.print("  Bas_AngFb: ");
-	Serial.print(Bas_AngFb);
-	Serial.print("  Bas_Fbk: ");
-	Serial.println(Bas_fbk);
+	Serial.println(Bas_AngFb);
 
 	Serial.print("  Shl_AngFb: ");
-	Serial.print(Shl_fbk);
+	Serial.print(Shl_AngFb);
 
-	Serial.print("  Shl1_AngFb: ");
-	Serial.print(Shl1_AngFb);
 	Serial.print("  Shl1_Fbk: ");
 	Serial.println(Shl1_fbk);
 
 	Serial.print("  Elb_AngFb: ");
-	Serial.print(Elb_AngFb);
-	Serial.print("  Elb_Fbk: ");
-	Serial.print(Elb_fbk);
+	Serial.println(Elb_AngFb);
 
 	Serial.print("  Wri_AngFb: ");
-	Serial.print(Wri_AngFb);
-	Serial.print("  Wri_Fbk: ");
-	Serial.println(Wri_fbk);
+	Serial.println(Wri_AngFb);
 
 	Serial.print("  WrRO_AngFb: ");
-	Serial.print(Wro_AngFb);
-	Serial.print("  WrRO_Fbk: ");
-	Serial.print(Wro_fbk);
+	Serial.println(Wro_AngFb);
 
 	Serial.print("  Gri_AngFb: ");
 	Serial.println(Gri_AngFb);
-	Serial.print("  Gri_Fbk: ");
-	Serial.println(Gri_fbk);
 
+	//delay_ms(2000);
 
 	// Position the servos
 	Bas_Servo.write(int(Bas_AngFb));
-	Shl_Servo.write(Shl_fbk);
+	Shl_Servo.write(int(Shl_AngFb));
 	Shl_Servo1.write(Shl1_fbk);
 	Elb_Servo.write(int(Elb_AngFb));
 	Wri_Servo.write(int(Wri_AngFb));
@@ -572,49 +555,14 @@ void TurnArmOn(void){
 
 	Serial.println("Servo.write");
 
-	delay(100);
+
+	//delay_ms(2000);
 
 	AttachServos();
 
 	GetFeetbackAllServo();
 
-	delay_ms(5000);
-
-
-	//Serial.print("  Bas_AngFb: ");
-	//Serial.print(Bas_AngFb);
-	//Serial.print("  Bas_Fb: ");
-	//Serial.println(Bas_fb);
-
-	//Serial.print("  Shl_AngFb: ");
-	//Serial.print(Shl_fbk);
-	//Serial.print("  Shl_Fb: ");
-	//Serial.print(Shl_fb);
-
-	//Serial.print("  Shl1_AngFb: ");
-	//Serial.print(Shl1_AngFb);
-	//Serial.print("  Shl1_Fb: ");
-	//Serial.println(Shl1_fb);
-
-	//Serial.print("  Elb_AngFb: ");
-	//Serial.print(Elb_AngFb);
-	//Serial.print("  Elb_Fb: ");
-	//Serial.print(Elb_fb);
-
-	//Serial.print("  Wri_AngFb: ");
-	//Serial.print(Wri_AngFb);
-	//Serial.print("  Wri_Fb: ");
-	//Serial.println(Wri_fb);
-
-	//Serial.print("  WrRO_AngFb: ");
-	//Serial.print(Wro_AngFb);
-	//Serial.print("  WrRO_Fb: ");
-	//Serial.print(Wro_fb);
-
-	//Serial.print("  Gri_AngFb: ");
-	//Serial.println(Gri_AngFb);
-	//Serial.print("  Gri_Fb: ");
-	//Serial.println(Gri_fb);
+	//delay_ms(5000);
 
 	
 	// NOTE: Ensure arm is close to the desired park position before turning on Servo power!
@@ -1899,15 +1847,6 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 	elb_pos = ELB_MID - (elb_angle_d - 90.0);
 	wri_pos = WRI_MID + wri_angle_d;
 
-	// If any Servo ranges are exceeded, return an error
-#ifndef CYL_IK   // 3D kinematics
-	if (BA_pos3D < BAS_MIN || BA_pos3D > BAS_MAX )
-		return IK_ERROR;
-#endif
-
-	if (shl_pos < SHL_MIN || shl_pos > SHL_MAX || elb_pos < ELB_MIN || elb_pos > ELB_MAX || wri_pos < WRI_MIN || wri_pos > WRI_MAX)
-		return IK_ERROR;
-
 #ifdef DEBUG
 	Serial.println(F("Fn_doArmIK"));
  #ifndef CYL_IK   // 3D kinematics
@@ -1944,6 +1883,15 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 	Serial.println(wri_angle_d);
 	Serial.println();
 #endif
+
+	// If any Servo ranges are exceeded, return an error
+#ifndef CYL_IK   // 3D kinematics
+	if (BA_pos3D < BAS_MIN || BA_pos3D > BAS_MAX )
+		return IK_ERROR;
+#endif
+
+	if (shl_pos < SHL_MIN || shl_pos > SHL_MAX || elb_pos < ELB_MIN || elb_pos > ELB_MAX || wri_pos < WRI_MIN || wri_pos > WRI_MAX)
+		return IK_ERROR;
 
 	return IK_SUCCESS;
 } // doArmIK()
@@ -2081,7 +2029,7 @@ void ServoUpdateIK(int BA_us3D, int shl_us, int shl1_us, int elb_us, int wri_us)
 // Move servos to parking position
 void servo_park(int park_type) {
 
-	//int BA_park_us, shl_park_us, shl1_park_us, elb_park_us, wri_park_us, WRro_park_us, Gr_park_us; 
+	int error;
 
 	switch (park_type) {
 
@@ -2094,11 +2042,11 @@ void servo_park(int park_type) {
 
 
 		#ifdef CYL_IK   // 2D kinematics
-			doArmIK(0.0, MID_Y, MID_Z, MID_GRA);              // 0, 155.5, 171, 23.42
+			error = doArmIK(0.0, MID_Y, MID_Z, MID_GRA);              // 0, 155.5, 171, 23.42
 			BA_pos2D = MID_BA;                                // 90
 			BA_pos_us = deg_to_us(BA_pos2D);
 		#else           // 3D kinematics
-			doArmIK(MID_X, MID_Y, MID_Z, MID_GRA);            // 0, 155.5, 171, 23.42
+			error = doArmIK(MID_X, MID_Y, MID_Z, MID_GRA);            // 0, 155.5, 171, 23.42
 		#endif
 			WRro_pos = MID_WRO;                               // 90 
 			WRro_pos_us = deg_to_us(WRro_pos);
@@ -2108,8 +2056,12 @@ void servo_park(int park_type) {
 
 			DegToUsServoIK();
 			
-			GroupServoUpdate(T_PARK_MID, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
-
+			if(error == IK_SUCCESS){
+				GroupServoUpdate(T_PARK_MID, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
+			}
+			else{
+				MSound (2, 40, 2500, 40, 2500);
+			}
 			Y = MID_Y;
 			Z = MID_Z;
 			GA_pos = MID_GRA;
@@ -2132,11 +2084,11 @@ void servo_park(int park_type) {
 		#endif
 			
 		#ifdef CYL_IK   // 2D kinematics
-			doArmIK(0.0, READY_Y, READY_Z, READY_GRA);        // 0; 170; 45; 0
+			error = doArmIK(0.0, READY_Y, READY_Z, READY_GRA);        // 0; 170; 45; 0
 			BA_pos2D = READY_BA;                              // 90
 			BA_pos_us = deg_to_us(BA_pos2D);
 		#else           // 3D kinematics
-			doArmIK(READY_X, READY_Y, READY_Z, READY_GRA);    // 0; 170; 45; 0
+			error = doArmIK(READY_X, READY_Y, READY_Z, READY_GRA);    // 0; 170; 45; 0
 		#endif
 			WRro_pos = READY_WRO;                             // 90 
 			WRro_pos_us = deg_to_us(WRro_pos);
@@ -2145,8 +2097,12 @@ void servo_park(int park_type) {
 			Gr_pos_us = GRIP_READY_US;                        // POT_READY_POS=50, GRIP_READY_US=1370
 
 			DegToUsServoIK();
-			
-			GroupServoUpdate(T_PARK_ON, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
+			if(error == IK_SUCCESS){
+				GroupServoUpdate(T_PARK_ON, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
+			}
+			else{
+				MSound (2, 40, 2500, 40, 2500);
+			}
 
 			Y = READY_Y;
 			Z = READY_Z;
@@ -2170,11 +2126,11 @@ void servo_park(int park_type) {
 
 
 		#ifdef CYL_IK   // 2D kinematics
-			doArmIK(0.0, OFF_Y, OFF_Z, OFF_GRA);            // 0; 170; 45; 0
+			error = doArmIK(0.0, OFF_Y, OFF_Z, OFF_GRA);            // 0; 105; 113; 17.18
 			BA_pos2D = OFF_BA;                              // 90
 			BA_pos_us = deg_to_us(BA_pos2D);
 		#else           // 3D kinematics
-			doArmIK(OFF_X, OFF_Y, OFF_Z, OFF_GRA);          // 0; 170; 45; 0
+			error = doArmIK(OFF_X, OFF_Y, OFF_Z, OFF_GRA);          // 0; 105; 113; 17.18
 		#endif
 			WRro_pos = OFF_WRO;                             // 90 
 			WRro_pos_us = deg_to_us(WRro_pos);
@@ -2184,14 +2140,21 @@ void servo_park(int park_type) {
 
 			DegToUsServoIK();
 			
-			GroupServoUpdate(T_PARK_OFF, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
+			if(error == IK_SUCCESS){
+				GroupServoUpdate(T_PARK_OFF, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
+			}
+			else{
+				MSound (2, 40, 2500, 40, 2500);
+			}
 
-			Y = OFF_Y;
-			Z = OFF_Z;
-			GA_pos = OFF_GRA;
+			Y = READY_Y;
+			Z = READY_Z;
+			GA_pos = READY_GRA;
 
 		#ifdef CYL_IK   // 2D kinematics
 			BA_pos_s = BA_pos2D;
+		#else           // 3D kinematics
+			X = MID_X;
 		#endif
 			WRro_pos_s = WRro_pos;
 			POTCtrlPos_s = POTCtrlPos;
@@ -2420,6 +2383,10 @@ void delay_ms( unsigned long delayTime_ms) {
 
 
 	} while( millis() - carTime_ms < delayTime_ms );
+
+#ifdef DEBUG
+	Serial.println(F(" Delay_end "));
+#endif
 }
 
 
@@ -2504,7 +2471,7 @@ float readFbServoAngle(byte servoNum, boolean withOffset) {
 	Serial.println(AnalogVal);
 #endif
 
-	angle = map(getServoAnalogData(servoNum), SERVO_ANALOG_MIN, SERVO_ANALOG_MAX, 0, 180);
+	angle = map(AnalogVal, SERVO_ANALOG_MIN, SERVO_ANALOG_MAX, 0, 180);
 
 	//angle = analogToAngle(servoNum, getServoAnalogData(servoNum)); 
 
