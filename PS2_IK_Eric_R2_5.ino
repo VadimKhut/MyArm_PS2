@@ -2492,7 +2492,7 @@ float readFbServoAngle(byte servoNum, boolean withOffset, int model) {
 	Serial.println(AnalogVal);
 #endif
 
-	angle = map(AnalogVal, SERVO_ANALOG_MIN[model], SERVO_ANALOG_MAX[model], 0, 180);
+	angle = map(AnalogVal, SERVO_ANALOG_MIN_MV[model], SERVO_ANALOG_MAX_MV[model], 0, 180);
 
 	//angle = analogToAngle(servoNum, getServoAnalogData(servoNum)); 
 
