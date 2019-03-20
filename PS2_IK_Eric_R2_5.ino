@@ -121,8 +121,10 @@ int dummy;                      // Defining this dummy variable to work around a
 #define GRI_SERVO_ANG_PIN	5
 #define FSR_ANG_PIN			6
 
-#define SERVO_ANALOG_MAX    440
-#define SERVO_ANALOG_MIN    105
+#define SERVO_ANALOG_MG996_MAX_MV     440
+#define SERVO_ANALOG_MG996_MIN_MV     105
+#define SERVO_ANALOG_DS3218_MAX_MV    440
+#define SERVO_ANALOG_DS3218_MIN_MV    105
 
 // Arduino pin numbers for PS2 controller connections
 #define PS2_DAT_PIN		6       // Data           [green] 
@@ -140,9 +142,22 @@ volatile uint8_t pin_mask;
 // Define generic range limits for servos, in microseconds (us) and degrees (deg)
 // Used to map range of 180 deg to 1800 us (native Servo units).
 // Specific per-Servo/joint limits are defined below
+//
+// MIN     MID    MAX
+// 700     1500   2300
+// 600     1500   2400
+// 500     1500   2500
+// 400     1500   2600
+//
 #define SERVO_MIN_US	600
 #define SERVO_MID_US	1450
 #define SERVO_MAX_US	2300
+
+#define SERVO_MG996_MAX_US	600
+#define SERVO_MG996_MIN_US  2400
+#define SERVO_DS3218_MAX_US	500
+#define SERVO_DS3218_MIN_US  2500
+
 #define SERVO_MIN_DEG	0.0
 #define SERVO_MID_DEG	90.0
 #define SERVO_MAX_DEG	180.0
@@ -358,6 +373,13 @@ float mServoAngleOffset[6];
 const byte SERVO_ANG_PIN[6] = {BAS_SERVO_ANG_PIN, SHL_SERVO_ANG_PIN, ELB_SERVO_ANG_PIN, 
 	                             WRI_SERVO_ANG_PIN, GRI_SERVO_ANG_PIN, WRO_SERVO_ANG_PIN};
 
+const word SERVO_MAX_US[2] = {SERVO_MG996_MAX_US, SERVO_DS3218_MAX_US};
+const word SERVO_MIN_US[2] = {SERVO_MG996_MIN_US, SERVO_DS3218_MIN_US};
+
+const word SERVO_ANALOG_MIN_MV[2] = {SERVO_ANALOG_MG996_MIN_MV, SERVO_ANALOG_DS3218_MIN_MV};
+const word SERVO_ANALOG_MAX_MV[2] = {SERVO_ANALOG_MG996_MAX_MV, SERVO_ANALOG_DS3218_MAX_MV};
+
+
 word	GripperFSRInput;
 word	Gr_pos_us = GRIP_CLOSED_US;                     // PWM=1495
 word	old_Gr_pos_us;
@@ -371,7 +393,7 @@ static const byte TorqueSelect[] PROGMEM = {0,64,128,192,255};
 
 
 void writeCommand(void);
-int deg_to_us(float value);
+int deg_to_us(float value, int model);
 void InitPs2(void);
 void TurnArmOff(void);
 void TurnArmOn(void);
@@ -383,7 +405,6 @@ void TM1637Display_Off(void);
 void setName(int i);
 int doArmIK(float x, float y, float z, float grip_angle_d);
 void servo_park(int park_type);
-int deg_to_us(float value);
 float map_float(float x, float in_min, float in_max, float out_min, float out_max);
 void AttachServos(void);
 void FreeServos(void);
@@ -399,7 +420,7 @@ void SaveOldPos_us(void);
 void GetFeetbackAllServo(void);
 void Display_d(int dig_i);
 void ResetAllFlags(void);
-float readFbServoAngle(byte servoNum, boolean withOffset=false);
+float readFbServoAngle(byte servoNum, boolean withOffset=false, int model);
 unsigned int getServoAnalogData(byte servoNum);
 int getAnalogPinValue(unsigned int pin);
 static void _sort(unsigned int array[], unsigned int len);
@@ -511,12 +532,12 @@ void TurnArmOn(void){
 	Serial.println(F("Arm ON!"));
   #endif
 
-	Bas_AngFb = readFbServoAngle(BAS_SERVO_ANG_PIN);
-	Shl_AngFb = readFbServoAngle(SHL_SERVO_ANG_PIN);
-	Elb_AngFb = readFbServoAngle(ELB_SERVO_ANG_PIN);
-	Wri_AngFb = readFbServoAngle(WRI_SERVO_ANG_PIN);
-	Wro_AngFb = readFbServoAngle(WRO_SERVO_ANG_PIN);
-	Gri_AngFb = readFbServoAngle(GRI_SERVO_ANG_PIN);
+	Bas_AngFb = readFbServoAngle(BAS_SERVO_ANG_PIN, 0);
+	Shl_AngFb = readFbServoAngle(SHL_SERVO_ANG_PIN, 1);
+	Elb_AngFb = readFbServoAngle(ELB_SERVO_ANG_PIN, 1);
+	Wri_AngFb = readFbServoAngle(WRI_SERVO_ANG_PIN, 0);
+	Wro_AngFb = readFbServoAngle(WRO_SERVO_ANG_PIN, 0);
+	Gri_AngFb = readFbServoAngle(GRI_SERVO_ANG_PIN, 0);
 
 	Shl1_fbk = int(185-Shl_AngFb);
 
@@ -1905,12 +1926,12 @@ int doArmIK(float x, float y, float z, float grip_angle_d) {
 void DegToUsServoIK(void) {
 
 #ifndef CYL_IK   // 3D kinematics
-	BA_pos_us = deg_to_us(BA_pos3D);
+	BA_pos_us = deg_to_us(BA_pos3D, 0);
 #endif
-	shl_pos_us = deg_to_us(shl_pos);
-	shl1_pos_us = deg_to_us(185-shl_pos);
-	elb_pos_us = deg_to_us(elb_pos);
-	wri_pos_us = deg_to_us(wri_pos);
+	shl_pos_us = deg_to_us(shl_pos, 1);
+	shl1_pos_us = deg_to_us(185-shl_pos, 1);
+	elb_pos_us = deg_to_us(elb_pos, 0);
+	wri_pos_us = deg_to_us(wri_pos, 0);
 	//WRro_pos_us = deg_to_us(WRro_pos);
 	//Gr_pos_us = deg_to_us(Gr_pos);
 
@@ -2044,12 +2065,12 @@ void servo_park(int park_type) {
 		#ifdef CYL_IK   // 2D kinematics
 			error = doArmIK(0.0, MID_Y, MID_Z, MID_GRA);              // 0, 155.5, 171, 23.42
 			BA_pos2D = MID_BA;                                // 90
-			BA_pos_us = deg_to_us(BA_pos2D);
+			BA_pos_us = deg_to_us(BA_pos2D, 0);
 		#else           // 3D kinematics
 			error = doArmIK(MID_X, MID_Y, MID_Z, MID_GRA);            // 0, 155.5, 171, 23.42
 		#endif
 			WRro_pos = MID_WRO;                               // 90 
-			WRro_pos_us = deg_to_us(WRro_pos);
+			WRro_pos_us = deg_to_us(WRro_pos, 0);
 			
 			POTCtrlPos = POT_MID_POS;                         // 122
 			Gr_pos_us = GRIP_MID_US;                          // POT_MID_POS=50, GRIP_MID_US=1190
@@ -2086,12 +2107,12 @@ void servo_park(int park_type) {
 		#ifdef CYL_IK   // 2D kinematics
 			error = doArmIK(0.0, READY_Y, READY_Z, READY_GRA);        // 0; 170; 45; 0
 			BA_pos2D = READY_BA;                              // 90
-			BA_pos_us = deg_to_us(BA_pos2D);
+			BA_pos_us = deg_to_us(BA_pos2D, 0);
 		#else           // 3D kinematics
 			error = doArmIK(READY_X, READY_Y, READY_Z, READY_GRA);    // 0; 170; 45; 0
 		#endif
 			WRro_pos = READY_WRO;                             // 90 
-			WRro_pos_us = deg_to_us(WRro_pos);
+			WRro_pos_us = deg_to_us(WRro_pos, 0);
 			
 			POTCtrlPos = POT_READY_POS;
 			Gr_pos_us = GRIP_READY_US;                        // POT_READY_POS=50, GRIP_READY_US=1370
@@ -2128,12 +2149,12 @@ void servo_park(int park_type) {
 		#ifdef CYL_IK   // 2D kinematics
 			error = doArmIK(0.0, OFF_Y, OFF_Z, OFF_GRA);            // 0; 105; 113; 17.18
 			BA_pos2D = OFF_BA;                              // 90
-			BA_pos_us = deg_to_us(BA_pos2D);
+			BA_pos_us = deg_to_us(BA_pos2D, 0);
 		#else           // 3D kinematics
 			error = doArmIK(OFF_X, OFF_Y, OFF_Z, OFF_GRA);          // 0; 105; 113; 17.18
 		#endif
 			WRro_pos = OFF_WRO;                             // 90 
-			WRro_pos_us = deg_to_us(WRro_pos);
+			WRro_pos_us = deg_to_us(WRro_pos, 0);
 			
 			POTCtrlPos = POT_OFF_POS;
 			Gr_pos_us = GRIP_OFF_US;                        // POT_OFF_POS=0, GRIP_OFF_US=1450
@@ -2170,14 +2191,14 @@ void servo_park(int park_type) {
 // of roughly 2x that resolution via direct microsecond control.
 // This function converts 'float' (i.e. decimal) degrees to corresponding 
 // Servo microseconds to take advantage of this extra resolution.
-int deg_to_us(float value) {
+int deg_to_us(float value, int model) {
 
 	// Apply basic constraints
 	if (value < SERVO_MIN_DEG) value = SERVO_MIN_DEG;
 	if (value > SERVO_MAX_DEG) value = SERVO_MAX_DEG;
 
 	// Map degrees to microseconds, and round the result to a whole number
-	return(round(map_float(value, SERVO_MIN_DEG, SERVO_MAX_DEG, (float)SERVO_MIN_US, (float)SERVO_MAX_US)));      
+	return(round(map_float(value, SERVO_MIN_DEG, SERVO_MAX_DEG, (float)SERVO_MIN_US[model], (float)SERVO_MAX_US[model])));      
 }
 
 
@@ -2195,13 +2216,13 @@ void AttachServos(void) {
 	if (!fServosAttached) {
 
 		// Attach to the servos and specify range limits
-		Bas_Servo.attach(BAS_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
-		Shl_Servo.attach(SHL_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
-		Shl_Servo1.attach(SHL_SERVO1_PIN, SERVO_MIN_US, SERVO_MAX_US);
-		Elb_Servo.attach(ELB_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
-		Wri_Servo.attach(WRI_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
-		Wro_Servo.attach(WRO_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
-		Gri_Servo.attach(GRI_SERVO_PIN, SERVO_MIN_US, SERVO_MAX_US);
+		Bas_Servo.attach(BAS_SERVO_PIN, SERVO_MG996_MIN_US, SERVO_MG996_MAX_US);
+		Shl_Servo.attach(SHL_SERVO_PIN, SERVO_DS3218_MIN_US, SERVO_DS3218_MAX_US);
+		Shl_Servo1.attach(SHL_SERVO1_PIN, SERVO_DS3218_MIN_US, SERVO_DS3218_MAX_US);
+		Elb_Servo.attach(ELB_SERVO_PIN, SERVO_MG996_MIN_US, SERVO_MG996_MAX_US);
+		Wri_Servo.attach(WRI_SERVO_PIN, SERVO_MG996_MIN_US, SERVO_MG996_MAX_US);
+		Wro_Servo.attach(WRO_SERVO_PIN, SERVO_MG996_MIN_US, SERVO_MG996_MAX_US);
+		Gri_Servo.attach(GRI_SERVO_PIN, SERVO_MG996_MIN_US, SERVO_MG996_MAX_US);
 		
 
 		fServosAttached = true;
@@ -2457,7 +2478,7 @@ void ResetAllFlags(void) {
 
 
 
-float readFbServoAngle(byte servoNum, boolean withOffset) {
+float readFbServoAngle(byte servoNum, boolean withOffset, int model) {
 
 	float angle;
 	int AnalogVal;
@@ -2471,7 +2492,7 @@ float readFbServoAngle(byte servoNum, boolean withOffset) {
 	Serial.println(AnalogVal);
 #endif
 
-	angle = map(AnalogVal, SERVO_ANALOG_MIN, SERVO_ANALOG_MAX, 0, 180);
+	angle = map(AnalogVal, SERVO_ANALOG_MIN[model], SERVO_ANALOG_MAX[model], 0, 180);
 
 	//angle = analogToAngle(servoNum, getServoAnalogData(servoNum)); 
 
@@ -2620,7 +2641,7 @@ void WristRotControl(void) {
 
 	if(WRro_pos != WRro_pos_s) {
 
-		WRro_pos_us = deg_to_us(WRro_pos);
+		WRro_pos_us = deg_to_us(WRro_pos, 0);
 		Wro_Servo.writeMicroseconds(WRro_pos_us);
 		WRro_pos_s = WRro_pos; 
 	}
@@ -2633,7 +2654,7 @@ void BaseControl(void) {
 
 	if(BA_pos2D != BA_pos_s) {
 
-		BA_pos_us = deg_to_us(BA_pos2D);
+		BA_pos_us = deg_to_us(BA_pos2D, 0);
 		Bas_Servo.writeMicroseconds(BA_pos_us);
 		BA_pos_s = BA_pos2D;
 	}
