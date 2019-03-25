@@ -218,7 +218,7 @@ volatile uint8_t pin_mask;
 
 #define DELTA_TIME_R_MIN		300
 #define DELTA_TIME_R_MAX		3000
-#define DELTA_TIME_R_DEFAULT	500
+#define DELTA_TIME_R_DEFAULT	100
 #define DELTA_TIME_R_INCREMENT	100
 
 
@@ -942,7 +942,7 @@ void Control_PS2_Input(void){
 
 				else if(Ps2x.ButtonPressed(PSB_PAD_LEFT)) {                   // PSAB_PAD_LEFT Test
 
-					if (playbackProgram > 1) {
+					if (playbackProgram >= 1) {
 						playbackProgram--;
 						setName(playbackProgram);
 						setDisplay('S');
@@ -1331,25 +1331,24 @@ void startSelect() {
 	// Find maximum program number
 	for (uint8_t i = 0; i < 1000; i++) {
 		setName(i);
-		if (sd.exists(name)) continue;
+		if (sd.exists(name))
+			continue;
 		maxProgram = i-1;
-		// Get program to playback
-		if (playbackProgram == -1 )
-			playbackProgram = i-1;
 		break;
 	}
 
-	//// Get program to playback
-	//if (playbackProgram == -1 ) {
+	// Get program to playback
+	if (playbackProgram == -1 ) {
 
-	//	// Find latest recorded program and use that.
-	//	for (uint8_t i = 0; i < 1000; i++) {
-	//		setName(i);
-	//		if (sd.exists(name)) continue;
-	//		playbackProgram = i-1;
-	//		break;
-	//	}
-	//}
+		// Find latest recorded program and use that.
+		for (uint8_t i = 0; i < 1000; i++) {
+			setName(i);
+			if (sd.exists(name)) 
+				continue;
+			playbackProgram = i-1;
+			break;
+		}
+	}
 
 	setName(playbackProgram);
 	setDisplay('S');
@@ -2120,7 +2119,7 @@ void servo_park(int park_type) {
 			
 		#ifdef CYL_IK   // 2D kinematics
 			error = doArmIK(0.0, READY_Y, READY_Z, READY_GRA);        // 0; 133.76; 101; -47.33
-			BA_pos2D = READY_BA;                              // 90
+			BA_pos2D = READY_BA;                                      // 90
 			BA_pos_us = deg_to_us(BA_pos2D, 0);
 
 		#ifdef DEBUG
@@ -2133,7 +2132,7 @@ void servo_park(int park_type) {
 		#else           // 3D kinematics
 			error = doArmIK(READY_X, READY_Y, READY_Z, READY_GRA);    // 0; 170; 45; 0
 		#endif
-			WRro_pos = READY_WRO;                             // 90 
+			WRro_pos = READY_WRO;                                     // 90 
 			WRro_pos_us = deg_to_us(WRro_pos, 0);
 
 		#ifdef DEBUG
@@ -2144,7 +2143,7 @@ void servo_park(int park_type) {
 		#endif			
 
 			POTCtrlPos = POT_READY_POS;
-			Gr_pos_us = GRIP_READY_US;                        // POT_READY_POS=50, GRIP_READY_US=1370
+			Gr_pos_us = GRIP_READY_US;                                // POT_READY_POS=50, GRIP_READY_US=1370
 
 		#ifdef DEBUG
 			Serial.print(F(", Gr_pos_us = "));
@@ -2183,8 +2182,8 @@ void servo_park(int park_type) {
 
 
 		#ifdef CYL_IK   // 2D kinematics
-			error = doArmIK(0.0, OFF_Y, OFF_Z, OFF_GRA);            // 0; 105; 113; 17.18
-			BA_pos2D = OFF_BA;                              // 90
+			error = doArmIK(0.0, OFF_Y, OFF_Z, OFF_GRA);              // 0; 105; 113; 17.18
+			BA_pos2D = OFF_BA;                                        // 90
 			BA_pos_us = deg_to_us(BA_pos2D, 0);
 
 		#ifdef DEBUG
@@ -2195,9 +2194,9 @@ void servo_park(int park_type) {
 		#endif
 
 		#else           // 3D kinematics
-			error = doArmIK(OFF_X, OFF_Y, OFF_Z, OFF_GRA);          // 0; 105; 113; 17.18
+			error = doArmIK(OFF_X, OFF_Y, OFF_Z, OFF_GRA);            // 0; 105; 113; 17.18
 		#endif
-			WRro_pos = OFF_WRO;                             // 90 
+			WRro_pos = OFF_WRO;                                       // 90 
 			WRro_pos_us = deg_to_us(WRro_pos, 0);
 
 		#ifdef DEBUG
@@ -2208,7 +2207,7 @@ void servo_park(int park_type) {
 		#endif			
 		
 			POTCtrlPos = POT_OFF_POS;
-			Gr_pos_us = GRIP_OFF_US;                        // POT_OFF_POS=0, GRIP_OFF_US=1450
+			Gr_pos_us = GRIP_OFF_US;                                  // POT_OFF_POS=0, GRIP_OFF_US=1450
 
 		#ifdef DEBUG
 			Serial.print(F(", Gr_pos_us = "));
@@ -2225,9 +2224,9 @@ void servo_park(int park_type) {
 				MSound (2, 40, 2500, 40, 2500);
 			}
 
-			Y = READY_Y;
-			Z = READY_Z;
-			GA_pos = READY_GRA;
+			Y = OFF_Y;
+			Z = OFF_Z;
+			GA_pos = OFF_GRA;
 
 		#ifdef CYL_IK   // 2D kinematics
 			BA_pos_s = BA_pos2D;
