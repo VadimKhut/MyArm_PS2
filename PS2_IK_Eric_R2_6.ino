@@ -121,7 +121,7 @@ int dummy;                      // Defining this dummy variable to work around a
 #define GRI_SERVO_ANG_PIN	5
 #define FSR_ANG_PIN			6
 
-#define SERVO_ANALOG_MG996_MAX_MV     445
+#define SERVO_ANALOG_MG996_MAX_MV     455
 #define SERVO_ANALOG_MG996_MIN_MV     132
 #define SERVO_ANALOG_DS3218_MAX_MV    620
 #define SERVO_ANALOG_DS3218_MIN_MV    48
@@ -180,7 +180,7 @@ volatile uint8_t pin_mask;
 #define SHL_OFF		108.0
 
 // Elbow
-#define ELB_MIN		60.0		// Max upward motion
+#define ELB_MIN		50.0		// Max upward motion
 #define ELB_MID		90.0
 #define ELB_MAX		165.0		// Max downward motion
 #define ELB_OFF		148.45
@@ -2060,14 +2060,34 @@ void servo_park(int park_type) {
 			error = doArmIK(0.0, MID_Y, MID_Z, MID_GRA);              // 0, 155.5, 171, 23.42
 			BA_pos2D = MID_BA;                                // 90
 			BA_pos_us = deg_to_us(BA_pos2D, 0);
+
+		#ifdef DEBUG
+			Serial.print(F(" Base Pos 2D = "));
+			Serial.print(BA_pos2D);
+			Serial.print(F(", BA_pos_us = "));
+			Serial.print(BA_pos_us);
+		#endif
+
 		#else           // 3D kinematics
 			error = doArmIK(MID_X, MID_Y, MID_Z, MID_GRA);            // 0, 155.5, 171, 23.42
 		#endif
 			WRro_pos = MID_WRO;                               // 90 
 			WRro_pos_us = deg_to_us(WRro_pos, 0);
-			
+
+		#ifdef DEBUG
+			Serial.print(F("  WR_RO = "));
+			Serial.print(WRro_pos);
+			Serial.print(F(", WRro_pos_us = "));
+			Serial.print(WRro_pos_us);
+		#endif			
+
 			POTCtrlPos = POT_MID_POS;                         // 122
 			Gr_pos_us = GRIP_MID_US;                          // POT_MID_POS=50, GRIP_MID_US=1190
+
+		#ifdef DEBUG
+			Serial.print(F(", Gr_pos_us = "));
+			Serial.println(Gr_pos_us, DEC);
+		#endif
 
 			DegToUsServoIK();
 			
@@ -2099,23 +2119,45 @@ void servo_park(int park_type) {
 		#endif
 			
 		#ifdef CYL_IK   // 2D kinematics
-			error = doArmIK(0.0, READY_Y, READY_Z, READY_GRA);        // 0; 170; 45; 0
+			error = doArmIK(0.0, READY_Y, READY_Z, READY_GRA);        // 0; 133.76; 101; -47.33
 			BA_pos2D = READY_BA;                              // 90
 			BA_pos_us = deg_to_us(BA_pos2D, 0);
+
+		#ifdef DEBUG
+			Serial.print(F(" Base Pos 2D = "));
+			Serial.print(BA_pos2D);
+			Serial.print(F(", BA_pos_us = "));
+			Serial.print(BA_pos_us);
+		#endif
+
 		#else           // 3D kinematics
 			error = doArmIK(READY_X, READY_Y, READY_Z, READY_GRA);    // 0; 170; 45; 0
 		#endif
 			WRro_pos = READY_WRO;                             // 90 
 			WRro_pos_us = deg_to_us(WRro_pos, 0);
-			
+
+		#ifdef DEBUG
+			Serial.print(F("  WR_RO = "));
+			Serial.print(WRro_pos);
+			Serial.print(F(", WRro_pos_us = "));
+			Serial.print(WRro_pos_us);
+		#endif			
+
 			POTCtrlPos = POT_READY_POS;
 			Gr_pos_us = GRIP_READY_US;                        // POT_READY_POS=50, GRIP_READY_US=1370
 
+		#ifdef DEBUG
+			Serial.print(F(", Gr_pos_us = "));
+			Serial.println(Gr_pos_us, DEC);
+		#endif
+
 			DegToUsServoIK();
+
 			if(error == IK_SUCCESS){
 				GroupServoUpdate(T_PARK_ON, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
 			}
 			else{
+
 				MSound (2, 40, 2500, 40, 2500);
 			}
 
@@ -2144,14 +2186,34 @@ void servo_park(int park_type) {
 			error = doArmIK(0.0, OFF_Y, OFF_Z, OFF_GRA);            // 0; 105; 113; 17.18
 			BA_pos2D = OFF_BA;                              // 90
 			BA_pos_us = deg_to_us(BA_pos2D, 0);
+
+		#ifdef DEBUG
+			Serial.print(F(" Base Pos 2D = "));
+			Serial.print(BA_pos2D);
+			Serial.print(F(", BA_pos_us = "));
+			Serial.print(BA_pos_us);
+		#endif
+
 		#else           // 3D kinematics
 			error = doArmIK(OFF_X, OFF_Y, OFF_Z, OFF_GRA);          // 0; 105; 113; 17.18
 		#endif
 			WRro_pos = OFF_WRO;                             // 90 
 			WRro_pos_us = deg_to_us(WRro_pos, 0);
-			
+
+		#ifdef DEBUG
+			Serial.print(F("  WR_RO = "));
+			Serial.print(WRro_pos);
+			Serial.print(F(", WRro_pos_us = "));
+			Serial.print(WRro_pos_us);
+		#endif			
+		
 			POTCtrlPos = POT_OFF_POS;
 			Gr_pos_us = GRIP_OFF_US;                        // POT_OFF_POS=0, GRIP_OFF_US=1450
+
+		#ifdef DEBUG
+			Serial.print(F(", Gr_pos_us = "));
+			Serial.println(Gr_pos_us, DEC);
+		#endif
 
 			DegToUsServoIK();
 			
@@ -2159,6 +2221,7 @@ void servo_park(int park_type) {
 				GroupServoUpdate(T_PARK_OFF, BA_pos_us, shl_pos_us, shl1_pos_us, elb_pos_us, wri_pos_us, WRro_pos_us, Gr_pos_us);
 			}
 			else{
+
 				MSound (2, 40, 2500, 40, 2500);
 			}
 
@@ -2171,6 +2234,7 @@ void servo_park(int park_type) {
 		#else           // 3D kinematics
 			X = MID_X;
 		#endif
+
 			WRro_pos_s = WRro_pos;
 			POTCtrlPos_s = POTCtrlPos;
 			break;
@@ -2584,7 +2648,8 @@ void GripperControl(void) {
 	//GripperFSRInput = analogRead(FSR_ANG_PIN);                   // Read FSR
 	GripperFSRInput = 0; //Vad!
 
-	if(GripperFSRInput > GRIPPER_CONTACT) {                         // this is true the Gripper are touching the object; GRIPPER_CONTACT=350  
+	if(GripperFSRInput > GRIPPER_CONTACT) {         
+		// this is true the Gripper are touching the object; GRIPPER_CONTACT=350  
 		if(!GripperFSR_Activated) {                                 // if in contact with FSR for the first time
 			POTSavePos = POTCtrlPos;                                // Save the potentiometer position
 		}   
@@ -2601,6 +2666,7 @@ void GripperControl(void) {
 		GripperFSR_Activated = true;
 	}  
 	else { // Open/close Grippers
+
 		GripperFSR_Activated = false;
 		Gr_pos_us = GRIP_CLOSED_US - POTCtrlPos*5/2;                // 1495 - POTCtrlPos*5/2
 
