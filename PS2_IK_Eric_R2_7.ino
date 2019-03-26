@@ -389,6 +389,9 @@ int PlaySpeed = PLAY_SPEED_DEFAULT;
 int InterpTime_R =  INTERPOLATE_TIME_R_DEFAULT;
 int DelayTime_R = DELAY_TIME_R_DEFAULT; 
 
+byte MultIndex = 0;
+byte MultIncr = 1;
+
 float mServoAngleOffset[6];
 const byte SERVO_ANG_PIN[6] = {BAS_SERVO_ANG_PIN, SHL_SERVO_ANG_PIN, ELB_SERVO_ANG_PIN, 
 	                             WRI_SERVO_ANG_PIN, GRI_SERVO_ANG_PIN, WRO_SERVO_ANG_PIN};
@@ -398,6 +401,7 @@ const word SERVO_MIN_US[2] = {SERVO_MG996_MIN_US, SERVO_DS3218_MIN_US};
 
 const word SERVO_ANALOG_MIN_MV[2] = {SERVO_ANALOG_MG996_MIN_MV, SERVO_ANALOG_DS3218_MIN_MV};
 const word SERVO_ANALOG_MAX_MV[2] = {SERVO_ANALOG_MG996_MAX_MV, SERVO_ANALOG_DS3218_MAX_MV};
+const byte INCREMENT_MUL[3] = {1,2,4};
 
 
 word	GripperFSRInput;
@@ -496,7 +500,7 @@ char name[] = "ARM000.CSV";         // Will be incremented to create a new file 
 // P = Playback
 // N = None
 char mode = 'N'; 
-unsigned long recStart;
+//unsigned long recStart;
 int playbackProgram = -1;
 int maxProgram = 0;
 
@@ -897,7 +901,28 @@ void Control_PS2_Input(void){
 				}
 			}
 
+			// Increment Multiplier - control--------------------------
+			if (Ps2x.ButtonPressed(PSB_SELECT)) {                          // PSB_SELECT Test 
+			//-Increase torque-----------
+						
+				MultIndex %= 3;
+				MultIncr = INCREMENT_MUL[MultIndex];
+				MultIndex ++;
 
+			#ifdef DEBUG
+				Serial.print(F("MultIncr = "));
+				Serial.println(MultIncr);
+			#endif
+
+				if (TorqueIndex == 3) {
+
+					MSound(1, 40, 3000);
+				}  
+				else {
+
+					MSound(1, 50, 6000);
+				}
+			}
 
 			// Speed ARM increase/decrease--------------------------
 			if(mode != 'S' && mode != 'R') {
@@ -984,18 +1009,18 @@ void Control_PS2_Input(void){
 
 
 				// Playback - Speed control--------------------------
-				if (Ps2x.ButtonPressed(PSB_PAD_UP) || Ps2x.ButtonPressed(PSB_PAD_DOWN)) {   // PSB_PAD_UP OR PSB_PAD_DOWN Test
+				if (Ps2x.ButtonPressed(PSB_PAD_UP) || Ps2x.ButtonPressed(PSB_PAD_DOWN)) {   // PSB_PAD_UP OR PSB_PAD_DOWN Test PSB_SELECT
 
 					//Increase Play speed with -50mS   -->
 					if(Ps2x.ButtonPressed(PSB_PAD_UP)) {                      // PSB_PAD_UP Test
 
-						PlaySpeed -= PLAY_SPEED_INCREMENT;
+						PlaySpeed -= PLAY_SPEED_INCREMENT * MultIncr;         // Default 50 * 1
 					}
 					
 					//-Decrease Play speed +50mS   <--
 					if (Ps2x.ButtonPressed(PSB_PAD_DOWN)) {                   // PSB_PAD_DOWN Test
 
-						PlaySpeed += PLAY_SPEED_INCREMENT;
+						PlaySpeed += PLAY_SPEED_INCREMENT * MultIncr;         // Default 50 * 1
 					}
 
 					// Constrain to limits
@@ -1027,15 +1052,15 @@ void Control_PS2_Input(void){
 				if (Ps2x.ButtonPressed(PSB_PAD_UP) || Ps2x.ButtonPressed(PSB_PAD_DOWN)) {   // PSB_PAD_UP OR PSB_PAD_DOWN Test
 
 					//Increase Interpalate Time with -100mS   -->
-					if(Ps2x.ButtonPressed(PSB_PAD_DOWN)) {                      // PSB_PAD_UP Test
+					if(Ps2x.ButtonPressed(PSB_PAD_DOWN)) {                                  // PSB_PAD_UP Test
 
-						InterpTime_R -= INTERPOLATE_TIME_R_INCREMENT;
+						InterpTime_R -= INTERPOLATE_TIME_R_INCREMENT * MultIncr;            // Default 50 * 1;
 					}
 					
 					//-Decrease Interpalate Time +100mS   <--
-					if (Ps2x.ButtonPressed(PSB_PAD_UP)) {                   // PSB_PAD_DOWN Test
+					if (Ps2x.ButtonPressed(PSB_PAD_UP)) {                                   // PSB_PAD_DOWN Test
 
-						InterpTime_R += INTERPOLATE_TIME_R_INCREMENT;
+						InterpTime_R += INTERPOLATE_TIME_R_INCREMENT * MultIncr;            // Default 50 * 1;
 					}
 
 					// Constrain to limits
@@ -1058,18 +1083,19 @@ void Control_PS2_Input(void){
 						MSound (2, 40, 2500, 40, 2500);
 					}
 				}
+
 				if (Ps2x.ButtonPressed(PSB_PAD_LEFT) || Ps2x.ButtonPressed(PSB_PAD_RIGHT)) {   // PSB_PAD_UP OR PSB_PAD_DOWN Test
 
 					//Increase Delay Time with -100mS   -->
-					if(Ps2x.ButtonPressed(PSB_PAD_LEFT)) {                      // PSB_PAD_UP Test
+					if(Ps2x.ButtonPressed(PSB_PAD_LEFT)) {                                     // PSB_PAD_UP Test
 
-						DelayTime_R -= DELAY_TIME_R_INCREMENT;
+						DelayTime_R -= DELAY_TIME_R_INCREMENT * MultIncr;                      // Default 50 * 1;
 					}
 					
 					//-Decrease Delay Time +100mS   <--
-					if (Ps2x.ButtonPressed(PSB_PAD_RIGHT)) {                   // PSB_PAD_DOWN Test
+					if (Ps2x.ButtonPressed(PSB_PAD_RIGHT)) {                                   // PSB_PAD_DOWN Test
 
-						DelayTime_R += DELAY_TIME_R_INCREMENT;
+						DelayTime_R += DELAY_TIME_R_INCREMENT * MultIncr;                      // Default 50 * 1;
 					}
 
 					// Constrain to limits
