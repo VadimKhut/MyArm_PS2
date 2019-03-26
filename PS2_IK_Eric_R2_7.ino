@@ -1046,13 +1046,13 @@ void Control_PS2_Input(void){
 				}
 				if (Ps2x.ButtonPressed(PSB_PAD_LEFT) || Ps2x.ButtonPressed(PSB_PAD_RIGHT)) {   // PSB_PAD_UP OR PSB_PAD_DOWN Test
 
-					//Increase Delta Time with -100mS   -->
+					//Increase Delay Time with -100mS   -->
 					if(Ps2x.ButtonPressed(PSB_PAD_LEFT)) {                      // PSB_PAD_UP Test
 
 						Delay_Time_R -= DELAY_TIME_R_INCREMENT;
 					}
 					
-					//-Decrease Delta Time +100mS   <--
+					//-Decrease Delay Time +100mS   <--
 					if (Ps2x.ButtonPressed(PSB_PAD_RIGHT)) {                   // PSB_PAD_DOWN Test
 
 						Delay_Time_R += DELAY_TIME_R_INCREMENT;
@@ -1228,15 +1228,18 @@ void Control_PS2_Input(void){
 
 void writeCommand(void) {
 
-	unsigned int DeltaTime;
+	int DelayTime, InterpTime;
 
 	if (mode == 'R') {
 
 		//myFile.println("time,BA_pos_us,shl_pos_us,shl1_pos_us,elb_pos_us,wri_pos_us,WRro_pos_us,Gr_pos_us");
 		if (myFile.open(name, O_RDWR | O_CREAT | O_AT_END)) {
 
-			DeltaTime = Delay_Time_R;
+			InterpTime = Interp_Time_R
+			DelayTime = Delay_Time_R;
 
+			myFile.print(InterpTime);    
+			myFile.print(",");
 			myFile.print(DeltaTime);    
 			myFile.print(",");
 			myFile.print(BA_pos_us);
@@ -1256,7 +1259,9 @@ void writeCommand(void) {
 
 		#ifdef DEBUG
 			Serial.print(F("Write to SD: "));
-			Serial.print(DeltaTime);
+			Serial.print(InterpTime);
+			Serial.print(F(","));
+			Serial.print(DelayTime);
 			Serial.print(F(","));
 			Serial.print(BA_pos_us);
 			Serial.print(F(","));
