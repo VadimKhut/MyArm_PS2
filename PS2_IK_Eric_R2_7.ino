@@ -1232,7 +1232,7 @@ void writeCommand(void) {
 
 	if (mode == 'R') {
 
-		//myFile.println("time,BA_pos_us,shl_pos_us,shl1_pos_us,elb_pos_us,wri_pos_us,WRro_pos_us,Gr_pos_us");
+		//myFile.println("InterpTime,Delay_Time,BA_pos_us,shl_pos_us,shl1_pos_us,elb_pos_us,wri_pos_us,WRro_pos_us,Gr_pos_us");
 		if (myFile.open(name, O_RDWR | O_CREAT | O_AT_END)) {
 
 			InterpTime = Interp_Time_R
@@ -1332,10 +1332,11 @@ void startRecord(void) {
 		servo_park(PARK_OFF);
 		delay_ms(T_PARK_OFF + 1000);
 
-		// myFile.println("time,command,value");    
+		// myFile.println("InterpTime=0,Delay_Time=0,BA_pos_us,shl_pos_us,shl1_pos_us,elb_pos_us,wri_pos_us,WRro_pos_us,Gr_pos_us");   
 		// Need to first write the initial (current) position
 		// of the arm so it can be initialized upon playback.
 
+        myFile.print("0,");
 		myFile.print("0,"); myFile.print(BA_pos_us);
 		myFile.print(","); myFile.print(shl_pos_us);
 		myFile.print(","); myFile.print(shl1_pos_us);
@@ -1347,6 +1348,7 @@ void startRecord(void) {
 
 	 #ifdef DEBUG
 		Serial.print(F("SD: "));
+		Serial.print("0,");
 		Serial.print("0,"); Serial.print(BA_pos_us);
 		Serial.print(","); Serial.print(shl_pos_us);
 		Serial.print(","); Serial.print(shl1_pos_us);
