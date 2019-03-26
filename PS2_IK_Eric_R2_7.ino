@@ -55,12 +55,26 @@
 *       Left  Joystick U/D:  Gripper/Wrist Angle
 *       L1/L2 Buttons:       Gripper close/open
 *       L2+Pad L/R:          Gripper adjusting the torque
-*       /\ TRIANGLE  :       Gripper fully open
-*       Digital Pad U/D:     Speed increase/decrease
+*       /\ TRIANGLE:         Gripper fully open
+*       Digital Pad U/D:     Arm Speed increase/decrease
+*
+*        Select mode:
+*       Digital Pad U/D:     Play speed increase/decrease
 *       Digital Pad L/R:     Playback Program increase/decrease
+*
+*        Record mode:
 *       O-Circle             Record (Hold 5sec)
 *       O-Circle             Capture all servo positions 
+*       Digital Pad U/D:     Interpalate Time increase/decrease
+*       Digital Pad L/R:     Delay Time increase/decrease
+*
+*        Play mode:
 *       []-Square            Play (Hold 4sec)
+*       []-Square            Play/Pause
+*       Digital Pad U/D:     Play speed increase/decrease
+*       Digital Pad L/R:     Delay Time increase/decrease
+*
+*       X - Cross            Stop (Hold 5sec)
 *
 **************************************************************************************
 * The Arduino connections are as follows:
@@ -205,29 +219,29 @@ volatile uint8_t pin_mask;
 
 // Speed adjustment parameters
 // Percentages (1.0 = 100%) - applied to all arm movements
-#define SPEED_MIN		0.25
-#define SPEED_MAX		1.5
-#define SPEED_DEFAULT	0.5
-#define SPEED_INCREMENT 0.25
+#define SPEED_MIN			0.25
+#define SPEED_MAX			1.5
+#define SPEED_DEFAULT		0.5
+#define SPEED_INCREMENT		0.25
 
 // Play Speed adjustment parameters
-#define PLAY_SPEED_MIN			-2000
-#define PLAY_SPEED_MAX			2000
-#define PLAY_SPEED_DEFAULT		100
-#define PLAY_SPEED_INCREMENT	50
+#define PLAY_SPEED_MIN					-2000
+#define PLAY_SPEED_MAX					2000
+#define PLAY_SPEED_DEFAULT				0
+#define PLAY_SPEED_INCREMENT			50
 
-#define DELAY_TIME_R_MIN		300
-#define DELAY_TIME_R_MAX		3000
-#define DELAY_TIME_R_DEFAULT	100
-#define DELAY_TIME_R_INCREMENT	100
+#define DELAY_TIME_R_MIN				0
+#define DELAY_TIME_R_MAX				3000
+#define DELAY_TIME_R_DEFAULT			0
+#define DELAY_TIME_R_INCREMENT			50
 
-#define INTERP_TIME_R_MIN		300
-#define INTERP_TIME_R_MAX		3000
-#define INTERP_TIME_R_DEFAULT	100
-#define INTERP_TIME_R_INCREMENT	100
+#define INTERPOLATE_TIME_R_MIN			100
+#define INTERPOLATE_TIME_R_MAX			3000
+#define INTERPOLATE_TIME_R_DEFAULT		300
+#define INTERPOLATE_TIME_R_INCREMENT	50
 
 #define INTERPOLATE_P_MIN		70          // the amount of time to complete a pose 
-#define TIME_DELAY_P_MIN		70 
+#define TIME_DELAY_P_MIN		70          // delay between transitions 
 
 // Practical navigation limit.
 // Enforced on controller input, and used for CLV calculation 
@@ -372,8 +386,8 @@ unsigned long ulTimePSB_CROSS;
 //unsigned long cTimePrev;
 int PlaySpeed = PLAY_SPEED_DEFAULT;
 
-int Interp_Time_R =  INTERP_TIME_R_DEFAULT;
-int Delay_Time_R = DELAY_TIME_R_DEFAULT; 
+int InterpTime_R =  INTERPOLATE_TIME_R_DEFAULT;
+int DelayTime_R = DELAY_TIME_R_DEFAULT; 
 
 float mServoAngleOffset[6];
 const byte SERVO_ANG_PIN[6] = {BAS_SERVO_ANG_PIN, SHL_SERVO_ANG_PIN, ELB_SERVO_ANG_PIN, 
@@ -1007,7 +1021,7 @@ void Control_PS2_Input(void){
 			} // mode == 'S'
 	
 
-			// Delta and Interp Time Record control---------------
+			// Delay and Interpolate Time Record control---------------
 			else if (mode == 'R') {
 
 				if (Ps2x.ButtonPressed(PSB_PAD_UP) || Ps2x.ButtonPressed(PSB_PAD_DOWN)) {   // PSB_PAD_UP OR PSB_PAD_DOWN Test
@@ -1015,30 +1029,30 @@ void Control_PS2_Input(void){
 					//Increase Interpalate Time with -100mS   -->
 					if(Ps2x.ButtonPressed(PSB_PAD_DOWN)) {                      // PSB_PAD_UP Test
 
-						Interp_Time_R -= INTERP_TIME_R_INCREMENT;
+						InterpTime_R -= INTERPOLATE_TIME_R_INCREMENT;
 					}
 					
 					//-Decrease Interpalate Time +100mS   <--
 					if (Ps2x.ButtonPressed(PSB_PAD_UP)) {                   // PSB_PAD_DOWN Test
 
-						Interp_Time_R += INTERP_TIME_R_INCREMENT;
+						InterpTime_R += INTERPOLATE_TIME_R_INCREMENT;
 					}
 
 					// Constrain to limits
-					Interp_Time_R = constrain(Interp_Time_R, INTERP_TIME_R_MIN, INTERP_TIME_R_MAX);
+					InterpTime_R = constrain(InterpTime_R, INTERPOLATE_TIME_R_MIN, INTERPOLATE_TIME_R_MAX);
 
 					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
 					MSound(1, 50, 6000);
 
 				#ifdef DEBUG	
-					Serial.print(F(" Interp_Time_R = "));
-					Serial.println(DELAY_TIME_R);
+					Serial.print(F(" InterpTime_R = "));
+					Serial.println(DelayTime_R);
 				#endif
 
-					Display_d(Interp_Time_R);
+					Display_d(InterpTime_R);
 
 					// Provide audible feedback of reaching limit
-					if (Interp_Time_R == INTERP_TIME_R_MIN || Interp_Time_R == INTERP_TIME_R_MAX) {
+					if (InterpTime_R == INTERPOLATE_TIME_R_MIN || InterpTime_R == INTERPOLATE_TIME_R_MAX) {
 
 						//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
 						MSound (2, 40, 2500, 40, 2500);
@@ -1049,30 +1063,30 @@ void Control_PS2_Input(void){
 					//Increase Delay Time with -100mS   -->
 					if(Ps2x.ButtonPressed(PSB_PAD_LEFT)) {                      // PSB_PAD_UP Test
 
-						Delay_Time_R -= DELAY_TIME_R_INCREMENT;
+						DelayTime_R -= DELAY_TIME_R_INCREMENT;
 					}
 					
 					//-Decrease Delay Time +100mS   <--
 					if (Ps2x.ButtonPressed(PSB_PAD_RIGHT)) {                   // PSB_PAD_DOWN Test
 
-						Delay_Time_R += DELAY_TIME_R_INCREMENT;
+						DelayTime_R += DELAY_TIME_R_INCREMENT;
 					}
 
 					// Constrain to limits
-					Delay_Time_R = constrain(Delay_Time_R, DELAY_TIME_R_MIN, DELAY_TIME_R_MAX);
+					DelayTime_R = constrain(DelayTime_R, DELAY_TIME_R_MIN, DELAY_TIME_R_MAX);
 
 					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
 					MSound(1, 50, 6000);
 
 				#ifdef DEBUG	
-					Serial.print(F(" Delay_Time_R = "));
-					Serial.println(Delay_Time_R);
+					Serial.print(F(" DelayTime_R = "));
+					Serial.println(DelayTime_R);
 				#endif
 
-					Display_d(Delay_Time_R);
+					Display_d(DelayTime_R);
 
 					// Provide audible feedback of reaching limit
-					if (Delay_Time_R == DELAY_TIME_R_MIN || Delay_Time_R == DELAY_TIME_R_MAX) {
+					if (DelayTime_R == DELAY_TIME_R_MIN || DelayTime_R == DELAY_TIME_R_MAX) {
 
 						//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
 						MSound (2, 40, 2500, 40, 2500);
@@ -1235,12 +1249,12 @@ void writeCommand(void) {
 		//myFile.println("InterpTime,Delay_Time,BA_pos_us,shl_pos_us,shl1_pos_us,elb_pos_us,wri_pos_us,WRro_pos_us,Gr_pos_us");
 		if (myFile.open(name, O_RDWR | O_CREAT | O_AT_END)) {
 
-			InterpTime = Interp_Time_R
-			DelayTime = Delay_Time_R;
+			InterpTime = InterpTime_R;
+			DelayTime = DelayTime_R;
 
 			myFile.print(InterpTime);    
 			myFile.print(",");
-			myFile.print(DeltaTime);    
+			myFile.print(DelayTime);    
 			myFile.print(",");
 			myFile.print(BA_pos_us);
 			myFile.print(",");
@@ -1332,7 +1346,7 @@ void startRecord(void) {
 		servo_park(PARK_OFF);
 		delay_ms(T_PARK_OFF + 1000);
 
-		// myFile.println("InterpTime=0,Delay_Time=0,BA_pos_us,shl_pos_us,shl1_pos_us,elb_pos_us,wri_pos_us,WRro_pos_us,Gr_pos_us");   
+		// myFile.println("InterpTime=0,DelayTime=0,BA_pos_us,shl_pos_us,shl1_pos_us,elb_pos_us,wri_pos_us,WRro_pos_us,Gr_pos_us");   
 		// Need to first write the initial (current) position
 		// of the arm so it can be initialized upon playback.
 
@@ -1493,8 +1507,8 @@ void Display_d(int dig_i) {
 void startPlayback(int in_playbackProgram) {
 
 	unsigned int InterpTime;
-	unsigned int TimeDelay;
-	int wServoMoveTime;
+	unsigned int DelayTime;
+	int wServoMoveTime, TempServoMoveTime;
 	int wTimeDelay;
 	int BA, shl, shl1, elb, wri, WRro, Gr;
 	char c1, c2, c3, c4, c5, c6, c7, c8;   // commas
@@ -1519,7 +1533,7 @@ void startPlayback(int in_playbackProgram) {
 
 	if (sdin.is_open()) {
 
-		while (sdin >> InterpTime >> c1 >> TimeDelay >> c2 >> BA >> c3 >> shl >> c4 >> shl1 >> c5 >> elb >> c6 >> wri >> c7 >> WRro >> c8 >> Gr) {
+		while (sdin >> InterpTime >> c1 >> DelayTime >> c2 >> BA >> c3 >> shl >> c4 >> shl1 >> c5 >> elb >> c6 >> wri >> c7 >> WRro >> c8 >> Gr) {
 			
 			if (c1 != ',' || c2 != ',' || c3 != ',' || c4 != ',' || c5 != ',' || c6 != ','|| c7 != ','|| c8 != ',') 
 				continue;
@@ -1531,7 +1545,7 @@ void startPlayback(int in_playbackProgram) {
 			Serial.print(InterpTime);
 			Serial.print(c1);
 			Serial.print(F("  "));
-			Serial.print(TimeDelay);
+			Serial.print(DelayTime);
 			Serial.print(c2);
 			Serial.print(" "); Serial.print(BA);
 			Serial.print(c3);
@@ -1551,26 +1565,30 @@ void startPlayback(int in_playbackProgram) {
 
 			fileLine++;
 
-			if (TimeDelay == 0) {
+			if (InterpTime == 0) {
 
 				wServoMoveTime = 2000;
 			}
 			else{
 
-				wServoMoveTime = InterpTime + PlaySpeed;
-				wServoMoveTime = max(ServoMoveTime, INTERPOLATE_P_MIN);
+				TempServoMoveTime = InterpTime + PlaySpeed;                               // default 300 + 0
+				wServoMoveTime = max(TempServoMoveTime, INTERPOLATE_P_MIN);
 			}
 
 			GroupServoUpdate(wServoMoveTime, BA, shl, shl1, elb, wri, WRro, Gr);
 
-			if (TimeDelay == 0 && !fButtonStop && !fButtonPause) {
+			if (InterpTime == 0 && !fButtonStop && !fButtonPause) {
 
 				delay_ms(2000);
 			}
-			else if(TimeDelay != 0 && !fButtonStop && !fButtonPause) {
+			else if(DelayTime != 0 && !fButtonStop && !fButtonPause) {
 
-				wTimeDelay = TimeDelay + PlaySpeed;
+				wTimeDelay = DelayTime + TempServoMoveTime;                       // default 0 + 300 + 0
 				wTimeDelay = max(wTimeDelay, TIME_DELAY_P_MIN);
+
+				if(wTimeDelay < wServoMoveTime)
+					wTimeDelay = wServoMoveTime;
+
 
 				if(!fButtonStop && !fButtonPause)
 
