@@ -71,8 +71,7 @@
 *        Play mode:
 *       []-Square            Play (Hold 4sec)
 *       []-Square            Play/Pause
-*       Digital Pad U/D:     Play speed increase/decrease
-*       Digital Pad L/R:     Delay Time increase/decrease
+*       Digital Pad U/D:     Play speed increase/decrease       
 *
 *       X - Cross            Stop (Hold 5sec)
 *
@@ -401,7 +400,7 @@ const word SERVO_MIN_US[2] = {SERVO_MG996_MIN_US, SERVO_DS3218_MIN_US};
 
 const word SERVO_ANALOG_MIN_MV[2] = {SERVO_ANALOG_MG996_MIN_MV, SERVO_ANALOG_DS3218_MIN_MV};
 const word SERVO_ANALOG_MAX_MV[2] = {SERVO_ANALOG_MG996_MAX_MV, SERVO_ANALOG_DS3218_MAX_MV};
-static const byte INCREMENT_MUL[3] PROGMEM = {1,2,4};
+static const byte INCREMENT_MUL[] PROGMEM = {1,2,4};
 
 
 word	GripperFSRInput;
@@ -856,8 +855,8 @@ void Control_PS2_Input(void){
 
 							MSound(1, 50, 6000);
 						}
-
-						TorqueLevel = (GRIPPER_FSR_MIN_TORQUE + (TorqueSelect[TorqueIndex] * TORQUE_MULTIFACTOR) / 100);
+						
+						TorqueLevel = (GRIPPER_FSR_MIN_TORQUE + (pgm_read_byte(&TorqueSelect[TorqueIndex]) * TORQUE_MULTIFACTOR) / 100);
 					}
 				}
 
@@ -875,7 +874,7 @@ void Control_PS2_Input(void){
 							MSound(1, 50, 6000);
 						}
 
-						TorqueLevel = (GRIPPER_FSR_MIN_TORQUE + (TorqueSelect[TorqueIndex] * TORQUE_MULTIFACTOR) / 100);
+						TorqueLevel = (GRIPPER_FSR_MIN_TORQUE + (pgm_read_byte(&TorqueSelect[TorqueIndex]) * TORQUE_MULTIFACTOR) / 100);
 					}
 				}  
 			}    
@@ -906,15 +905,20 @@ void Control_PS2_Input(void){
 			//-Increase torque-----------
 						
 				MultIndex %= 3;
-				MultIncr = INCREMENT_MUL[MultIndex];
+				MultIncr = pgm_read_byte(&INCREMENT_MUL[MultIndex]);
 				MultIndex ++;
 
 			#ifdef DEBUG
 				Serial.print(F("MultIncr = "));
-				Serial.println(MultIncr);
+				Serial.print(MultIncr);
+				Serial.print(F("  MultInd = "));
+				Serial.println(MultIndex);
+
 			#endif
 
-				if (TorqueIndex == 3) {
+				Display_d(MultIncr);
+
+				if (MultIncr == 3) {
 
 					MSound(1, 40, 3000);
 				}  
@@ -1071,7 +1075,7 @@ void Control_PS2_Input(void){
 
 				#ifdef DEBUG	
 					Serial.print(F(" InterpTime_R = "));
-					Serial.println(DelayTime_R);
+					Serial.println(InterpTime_R);
 				#endif
 
 					Display_d(InterpTime_R);
@@ -1161,7 +1165,7 @@ void Control_PS2_Input(void){
 				if ((millis() - ulTimePSB_CROSS) > 5000) {
 
 				#ifdef DEBUG
-					Serial.println(F("Stop Record button press 5s"));
+					Serial.println(F("Stop button press 5s"));
 				#endif
 
 					//tone(SPK_PIN, TONE_READY , TONE_DURATION);
@@ -1707,7 +1711,7 @@ void setup(){
 
 	InitPs2();
 	
-	TorqueLevel = (GRIPPER_FSR_MIN_TORQUE + (TorqueSelect[TorqueIndex] * TORQUE_MULTIFACTOR) / 100); //=228
+	TorqueLevel = (GRIPPER_FSR_MIN_TORQUE + (pgm_read_byte(&TorqueSelect[TorqueIndex]) * TORQUE_MULTIFACTOR) / 100); //=228
 
 
 #ifdef DEBUG
@@ -2475,48 +2479,73 @@ void Control_PS2_Input_S(void){
 		}
 
 
-			// Playback - Speed control ( mode == PLAYBACK) 
-			if (mode == 'P') {
-				if (Ps2x.ButtonPressed(PSB_PAD_UP) || Ps2x.ButtonPressed(PSB_PAD_DOWN)) {   // PSB_PAD_UP OR PSB_PAD_DOWN Test
+		if (Ps2x.ButtonPressed(PSB_SQUARE)) {                    // PSB_SQUARE pressed
 
-					//Increase Play speed with -50mS   -->
-					if(Ps2x.ButtonPressed(PSB_PAD_UP)) {                      // PSB_PAD_UP Test
+			fButtonPause = !fButtonPause;
+		}
 
-						PlaySpeed -= PLAY_SPEED_INCREMENT;
-					}
-					
-					//-Decrease Play speed +50mS   <--
-					if (Ps2x.ButtonPressed(PSB_PAD_DOWN)) {                   // PSB_PAD_DOWN Test
+		// Increment Multiplier - control--------------------------
+		if (Ps2x.ButtonPressed(PSB_SELECT) && fButtonPause) {    // PSB_SELECT Test 
+		//-Increase torque-----------
+						
+			MultIndex %= 3;
+			MultIncr = pgm_read_byte(&INCREMENT_MUL[MultIndex]);
+			MultIndex ++;
 
-						PlaySpeed += PLAY_SPEED_INCREMENT;
-					}
+		#ifdef DEBUG
+			Serial.print(F("MultIncr = "));
+			Serial.println(MultIncr);
+		#endif
 
-					// Constrain to limits
-					PlaySpeed = constrain(PlaySpeed, PLAY_SPEED_MIN, PLAY_SPEED_MAX);
+			Display_d(MultIncr);
 
-					//tone(SPK_PIN, TONE_READY, TONE_DURATION);
-					MSound(1, 50, 6000);
+			if (MultIncr == 3) {
 
-				#ifdef DEBUG	
-					Serial.print(F(" PlaySpeed = "));
-					Serial.println(PlaySpeed);
-				#endif
+				MSound(1, 40, 3000);
+			}  
+			else {
 
-					Display_d(PlaySpeed);
-
-					// Provide audible feedback of reaching limit
-					if (PlaySpeed == PLAY_SPEED_MIN || PlaySpeed == PLAY_SPEED_MAX) {
-
-						//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
-						MSound (2, 40, 2500, 40, 2500);
-					}
-				}
-			} // mode == 'P'
-
-			if (Ps2x.ButtonPressed(PSB_SQUARE)) {                             // PSB_SQUARE pressed
-
-				fButtonPause = !fButtonPause;
+				MSound(1, 50, 6000);
 			}
+		}
+
+		// Playback - Speed control ( mode == PLAYBACK) 
+		if (mode == 'P') {
+			if (Ps2x.ButtonPressed(PSB_PAD_UP) || Ps2x.ButtonPressed(PSB_PAD_DOWN)) {   // PSB_PAD_UP OR PSB_PAD_DOWN Test
+
+				//Increase Play speed with -50mS   -->
+				if(Ps2x.ButtonPressed(PSB_PAD_UP)) {                                    // PSB_PAD_UP Test
+
+					PlaySpeed -= PLAY_SPEED_INCREMENT * MultIncr;                       // Default 50 * 1;
+				}
+					
+				//-Decrease Play speed +50mS   <--
+				if (Ps2x.ButtonPressed(PSB_PAD_DOWN)) {                                 // PSB_PAD_DOWN Test
+
+					PlaySpeed += PLAY_SPEED_INCREMENT * MultIncr;                       // Default 50 * 1;
+				}
+
+				// Constrain to limits
+				PlaySpeed = constrain(PlaySpeed, PLAY_SPEED_MIN, PLAY_SPEED_MAX);
+
+				//tone(SPK_PIN, TONE_READY, TONE_DURATION);
+				MSound(1, 50, 6000);
+
+			#ifdef DEBUG	
+				Serial.print(F(" PlaySpeed = "));
+				Serial.println(PlaySpeed);
+			#endif
+
+				Display_d(PlaySpeed);
+
+				// Provide audible feedback of reaching limit
+				if (PlaySpeed == PLAY_SPEED_MIN || PlaySpeed == PLAY_SPEED_MAX) {
+
+					//tone(SPK_PIN, TONE_IK_ERROR, TONE_DURATION);
+					MSound (2, 40, 2500, 40, 2500);
+				}
+			}
+		} // mode == 'P'
 
 	}  // end, if((ps2x.Analog(1) & 0xf0) == 0x70), read PS2 controller 
 
