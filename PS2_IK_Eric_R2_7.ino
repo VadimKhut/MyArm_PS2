@@ -1508,7 +1508,7 @@ void Display_d(int dig_i) {
 	unsigned int dot;
 
 
-	display.setBrightness(7); // Turn on
+	display.setBrightness(7);          // Turn on
 
 	if(dig_i < 0) {                    // if the number is negative, display dots
 
@@ -1601,7 +1601,7 @@ void startPlayback(int in_playbackProgram) {
 			}
 			else{
 
-				TempServoMoveTime = InterpTime + PlaySpeed;                               // default 300 + 0
+				TempServoMoveTime = InterpTime + PlaySpeed;                         // default 300 + 0
 				wServoMoveTime = max(TempServoMoveTime, INTERPOLATE_P_MIN);
 			}
 
@@ -1611,9 +1611,9 @@ void startPlayback(int in_playbackProgram) {
 
 				delay_ms(2000);
 			}
-			else if(DelayTime != 0 && !fButtonStop && !fButtonPause) {
+			else if(InterpTime != 0 && !fButtonStop && !fButtonPause) {
 
-				wTimeDelay = DelayTime + TempServoMoveTime;                       // default 0 + 300 + 0
+				wTimeDelay = DelayTime + TempServoMoveTime;                         // default 0 + 300 + 0
 				wTimeDelay = max(wTimeDelay, TIME_DELAY_P_MIN);
 
 				if(wTimeDelay < wServoMoveTime)
@@ -1639,11 +1639,11 @@ void startPlayback(int in_playbackProgram) {
 
 				Serial.println(F("Pause_butt"));
 
-				data[0] = B01000000;  // SEG_G
+				data[0] = B01000000;        // SEG_G
 				data[1] = B01000000;
 				data[2] = B01000000;
 				data[3] = B01000000;
-				display.setSegments(data); // display raw segment
+				display.setSegments(data);  // display raw segment
 
 				DoPause();
 			}
